@@ -13,6 +13,7 @@ from wtforms import Form, StringField, PasswordField, IntegerField, TextAreaFiel
 from passlib.hash import sha256_crypt
 from flask_mysqldb import MySQL
 from flask_script import Manager
+from datetime import datetime
 
 # Flask instance
 app = Flask(__name__)
@@ -185,7 +186,7 @@ def employeeHome():
     username = session['username']
 
     # Check that account exists in user_details
-    result = cur.execute("select assignedTo from user_details where email=%s", [username])
+    result = cur.execute("select * from user_details where email=%s", [username])
     if result > 0:
         row = cur.fetchone()
         cur.close()
@@ -394,18 +395,24 @@ def locationInfo(id):
         emailAdd = request.form.getlist('empAdd')
         emailRemove = request.form.getlist('empRemove')
 
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
         # Removes selected employees from location, lowers num employees column for each employee removed
         if emailRemove:
             for email in emailRemove:
-                cur.execute("update user_details set assignedTo = 0 where email = %s", [email])
-                cur.execute("update locations set numEmployees = numEmployees - 1 where id = %s", [id])
+                cur.execute("update user_details set assignedTo = 0, lastUpdate = %s where email = %s",
+                            (currentTime, email))
+                cur.execute("update locations set numEmployees = numEmployees - 1, lastUpdate = %s where id = %s",
+                            (currentTime, id))
                 mysql.connection.commit()
 
         # Assign employees to new location, increase num employees column for each employee assigned
         if emailAdd:
             for email in emailAdd:
-                cur.execute("update user_details set assignedTo = %s where email = %s", (id, email))
-                cur.execute("update locations set numEmployees = numEmployees + 1 where id = %s", [id])
+                cur.execute("update user_details set assignedTo = %s, lastUpdate = %s where email = %s",
+                            (id, currentTime, email))
+                cur.execute("update locations set numEmployees = numEmployees + 1, lastUpdate = %s where id = %s",
+                            (currentTime, id))
                 mysql.connection.commit()
 
         # Will reach at end of POST request, redirects to URL as GET request
@@ -453,6 +460,7 @@ def newEmployee():
         email = form.email.data
         assignedTo = form.assignedTo.data
         userType = form.userType.data
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # Check if email already in use
         cur = mysql.connection.cursor()
@@ -467,8 +475,8 @@ def newEmployee():
 
         # Add new user to DB for placement info, only if user is an employee
         if userType == '2':
-            cur.execute("insert into user_details(email, name, assignedTo) values(%s, %s, %s)",
-                        (email, name, assignedTo))
+            cur.execute("insert into user_details(email, name, assignedTo, lastUpdate) values(%s, %s, %s, %s)",
+                        (email, name, assignedTo, currentTime))
 
             # If new user assigned to location (assignedTo != 0), update locations numEmployees column
             if assignedTo != 0:
@@ -511,10 +519,13 @@ def newLocation():
             flash('Location with that email already exists', 'warning')
             return render_template('newLocation.html')
 
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
         # Create user corresponding to the new location
         cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",(email, sha256_crypt.hash('0000')))
         # Insert location
-        cur.execute("insert into locations(address, name, email) values(%s, %s, %s)", (address, name, email))
+        cur.execute("insert into locations(address, name, email, lastUpdate) values(%s, %s, %s, %s)",
+                    (address, name, email, currentTime))
         mysql.connection.commit()
 
         cur.close()
