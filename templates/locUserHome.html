@@ -1,3 +1,4 @@
+<!-- Home page of location user, used to view current location information and submit requests to admin users -->
 {% extends 'layout.html' %}
 
 {% block inline_style %}
@@ -15,8 +16,8 @@
 
             <!-- Only executes block if user_details row was found -->
             {% if valid %}
-                <h2>Currently placed at: {{ employee['assignedTo'] }}</h2>
-                <h2>This position was last updated: {{ employee['lastUpdate'] }}</h2>
+                <h2>{{ location['name'] }} currently has: {{ location['numEmployees'] }} employees</h2>
+                <h2>Number of employees was last updated: {{ location['lastUpdate'] }}</h2>
             {% endif %}
             <div class="btn-group" role="group">
             </div>

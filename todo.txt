@@ -1,17 +1,7 @@
-X Assignment functionality
-X Hashing and salting password data
-- Column retaining info on when the 'assignedTo' column was last modified in the user_details table
-X Drop obsolete columns from user_details table
-- More complete commenting/consistency in quotation use 'vs"
 - Formatting/CSS
-X Fix Add Employee form
 - SQL Inject Protection on forms (already built in?)
-- Limit password attempts?
+- Limit password attempts
 - View user should allow modification of user's values
-- Change vars like urows, prows, rows, etc, to more friendly names for html use
-
-- Upload to server?
-- Convert to PostgreSQL
 
 
 Q

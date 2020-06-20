@@ -80,8 +80,10 @@ def login():
                 flash('You are now logged in', 'success')
                 if userType == 1:
                     return redirect(url_for('employerHome'))
-                else:
+                elif userType == 2:
                     return redirect(url_for('employeeHome'))
+                else:
+                    return redirect(url_for('locUserHome'))
 
             # Password mismatch
             else:
@@ -106,6 +108,27 @@ def isLoggedIn(f):
     def wrap(*args, **kwargs):
         if 'logged_in' in session:
             return f(*args, **kwargs)
+        else:
+            flash('Unauthorized, please login', 'danger')
+            return redirect(url_for('login'))
+
+    return wrap
+
+
+# Is Logged In Location User
+# Decorator used to verify if user is logged in as a location associated user. Uses session data to verify login status
+# If user is admin or locUser, function is called as normal.
+# If user is logged in as regular employee, user redirected to employeeHome
+# Otherwise, user redirected to login page
+def isLoggedLocUser(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            if session['user_type'] == 1 or session['user_type'] == 3:
+                return f(*args, **kwargs)
+            else:
+                flash('Unauthorized, please login as location user', 'danger')
+                return redirect(url_for('employeeHome'))
         else:
             flash('Unauthorized, please login', 'danger')
             return redirect(url_for('login'))
@@ -172,6 +195,30 @@ def employeeHome():
     cur.close()
     flash('Error fetching placement information', "warning")
     return render_template('employeeHome.html', valid=False)
+
+
+# Location User Home
+# Displays home page of account associated with location
+# Will display current number of employees and allow the user to submit requests to admin users
+# If user is using administrative account (employer account), they will not have a corresponding location entry
+# and this routine will simply flash an error
+@app.route('/locUserHome')
+@isLoggedLocUser
+def locUserHome():
+    cur = mysql.connection.cursor()
+    username = session['username']
+
+    # Check that account has associated location entry (checking the user is not admin)
+    result = cur.execute("select * from locations where email=%s", [username])
+    if result > 0:
+        row = cur.fetchone()
+        cur.close()
+        return render_template('locUserHome.html', valid=True, location=row)
+
+    # If location account does not exist, throw error
+    cur.close()
+    flash('Error fetching location information', "warning")
+    return render_template('locUserHome.html', valid=False)
 
 
 # View Employees
@@ -274,6 +321,7 @@ def deleteEmployee():
         delete = request.form.getlist('empDel')
         confirm = request.form.get('confirm')
 
+        # Track number of employees deleted
         numDel = 0
 
         # Deletes all employees in delete list, so long as confirm was selected
@@ -312,6 +360,8 @@ def deleteEmployee():
             return redirect(url_for('employerHome'))
 
 
+# FORMS BELOW ARE ONLY NECESSARY IF NEED TO VALIDATE INPUT
+
 # Form to verify/restrict new employee data
 class NewEmployeeForm(Form):
     email = StringField('email', [validators.Length(min=1, max=50)])
@@ -323,6 +373,7 @@ class NewEmployeeForm(Form):
 # Form to verify/restrict new location data
 class NewLocationForm(Form):
     name = StringField('name', [validators.Length(min=6, max=50)])
+    email = StringField('name', [validators.Length(min=6, max=50)])
     address = StringField('address', [validators.Length(min=6, max=50)])
 
 
@@ -382,7 +433,8 @@ def locationInfo(id):
 # Add Employee
 # Allows admin to add a new user the the DB
 # User needs to input name, email, assignedTo, and userType columns. ID column is auto-filled
-# A userType of 1 indicates an admin(employer) user. Admin users aren't added to the user_details table (unnecessary)
+# A userType of 1 indicates an admin(employer) user Admin users aren't added to the user_details table (unnecessary)
+# A userType of 2 indicates an employee user
 @app.route('/newEmployee', methods=['GET', 'POST'])
 @isLoggedAdmin
 def newEmployee():
@@ -413,14 +465,14 @@ def newEmployee():
         cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
                     (email, sha256_crypt.hash('0000'), userType))
 
-        # Add new user to DB for placement info, only if user is not admin
+        # Add new user to DB for placement info, only if user is an employee
         if userType == '2':
             cur.execute("insert into user_details(email, name, assignedTo) values(%s, %s, %s)",
                         (email, name, assignedTo))
 
-        # If new user assigned to location (assignedTo != 0), update locations numEmployees column
-        if assignedTo != 0:
-            cur.execute("update locations set numEmployees = numEmployees + 1 where id = %s", [assignedTo])
+            # If new user assigned to location (assignedTo != 0), update locations numEmployees column
+            if assignedTo != 0:
+                cur.execute("update locations set numEmployees = numEmployees + 1 where id = %s", [assignedTo])
 
         mysql.connection.commit()
         cur.close()
@@ -445,19 +497,24 @@ def newLocation():
     if request.method == 'POST' and form.validate():
         # Get data from form
         app.logger.info('In POST')
-        address = form.address.data
+
         name = form.name.data
+        address = form.address.data
+        email = form.email.data
 
         cur = mysql.connection.cursor()
 
-        # Check location doesn't already exist
-        result = cur.execute("select * from locations where address = %s", [address])
+        # Check location account doesn't already exist
+        result = cur.execute("select * from locations where email = %s", [email])
+
         if result > 0:
-            flash('Location with that address already exists', 'warning')
+            flash('Location with that email already exists', 'warning')
             return render_template('newLocation.html')
 
+        # Create user corresponding to the new location
+        cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",(email, sha256_crypt.hash('0000')))
         # Insert location
-        cur.execute("insert into locations(address, name) values(%s, %s)", (address, name))
+        cur.execute("insert into locations(address, name, email) values(%s, %s, %s)", (address, name, email))
         mysql.connection.commit()
 
         cur.close()
@@ -465,6 +522,7 @@ def newLocation():
         flash('New location has been added to the database', 'success')
 
         return redirect(url_for('employerHome'))
+
     # Invalid form, still POST
     else:
         if request.method == 'POST':
@@ -502,7 +560,7 @@ def updatePassword():
         if sha256_crypt.verify(passwordCandidate, dbPass['password']):
             # Update DB with new hash
             passw = sha256_crypt.hash(newPassword)
-            cur.execute("update users set password=%s where email=%s", (passw, session['username']))
+            cur.execute("update users set password = %s where email=%s", (passw, session['username']))
             flash('Your password has been updated', 'success')
 
             mysql.connection.commit()
