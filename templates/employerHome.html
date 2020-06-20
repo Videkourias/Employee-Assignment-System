@@ -1,0 +1,74 @@
+{% extends 'layout.html' %}
+    {% block inline_style %}
+    	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bitter:400,700">
+    	<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Header-Dark.css') }}">
+    	<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.min.css') }}">
+    {% endblock %}
+
+{% block body %}
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="jumbotron text-center" style="background-color:#27404c; color: white;">
+        <h1 class="text-center">Welcome Admin!</h1>
+        <br>
+        <br>
+        <div style="font-size:18px;">
+
+            <div class="row">
+                <div class="col">
+                    <label><strong></strong></label>
+                    <a href="{{ url_for('viewEmployees') }}">
+                        <button class="btn btn-default" type="button"><strong>View Employees</strong></button>
+                    </a>
+                </div>
+
+                <div class="col">
+                <label><strong></strong></label>
+                <a href="{{ url_for('viewLocations') }}">
+                    <button class="btn btn-default" type="button"><strong>View Locations</strong></button>
+                </a>
+                </div>
+            </div>
+
+            <br>
+            <br>
+
+            <div class="row">
+                <div class="col">
+                    <label><strong></strong></label>
+                    <a href="{{ url_for('newEmployee') }}">
+                        <button class="btn btn-default" type="button"><strong>Add Employee</strong></button>
+                    </a>
+                </div>
+
+                <div class="col">
+                    <label><strong></strong></label>
+                    <a href="{{ url_for('newLocation') }}">
+                        <button class="btn btn-default" type="button"><strong>Add Location</strong></button>
+                    </a>
+                </div>
+            </div>
+
+            <br>
+            <br>
+
+            <div class="row">
+                <div class="col">
+                    <label><strong></strong></label>
+                    <a href="{{ url_for('assignEmployees') }}">
+                        <button class="btn btn-default" type="button"><strong>Assign Employee</strong></button>
+                    </a>
+                </div>
+
+                <div class="col">
+                    <label><strong></strong></label>
+                    <a href="{{ url_for('deleteEmployee') }}">
+                        <button class="btn btn-default" type="button"><strong>Delete Employee</strong></button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
