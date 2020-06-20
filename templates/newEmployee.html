@@ -20,16 +20,46 @@
       margin: auto;
   }
 </style>
+
+<script type="application/javascript">
+    /* Name: newEmployee
+       Input/Output: Takes a string called value as input, value corresponds to the value of the option selected
+                from the selection dropdown on the form.
+       Purpose: Function called to display or hide elements based on what user type is being created
+                ie. Selecting a user type(value) of 1 will hide the assignedTo field
+    */
+    function newEmployee(value){
+        if (value == 1){
+            document.getElementById("assignedTo").style.display="none";
+        }
+        else{
+            document.getElementById("assignedTo").style.display="block";
+        }
+    }
+</script>
+
 {% endblock %}
 {% block body %}
     <div class="jumbotron text-center hello" style="background-color:#27404c;color:white;">
         <div class="hello1">
             <form method="post" >
+
                 <div class="illustration" style=""><i class="icon ion-ios-navigate" style="font-size:90px;margin:0px;padding:0px;"></i></div>
+
+                <!-- Name and email fields -->
                 <div class="form-group"><label class="control-label">Name</label><input class="form-control" type="text" name="name" style="height:35px;"></div>
                 <div class="form-group"><label class="control-label">Email</label><input class="form-control" type="email" name="email" style="height:35px;"></div>
 
-                <div class="form-group"><label class="control-label">Assignment</label>
+                <!-- User type field -->
+                <div class="form-group"><label class="control-label">User Type</label>
+                    <select class="form-control" name="userType" onchange="newEmployee(value)">
+                        <option value="1">Admin</option>
+                        <option value="2" selected>Employee</option>
+                    </select>
+                </div>
+
+                <!-- Assignment Field -->
+                <div class="form-group"  id="assignedTo"><label class="control-label">Assignment</label>
                     <select class="form-control" name="assignedTo">
                         <option value="0">Unassigned</option>
                         {% for row in rows %}
@@ -38,18 +68,13 @@
                     </select>
                 </div>
 
-                <div class="form-group"><label class="control-label">User Type</label>
-                    <select class="form-control" name="userType">
-                        <option value="1">Admin</option>
-                        <option value="2" selected>Employee</option>
-                    </select>
-                </div>
-
+                <!-- Submit Button Field -->
                 <div style="height:44px;">
                     <div class="btn-group" role="group" style="height:44px;margin:10px 10px 10px 45px;">
                         <button class="btn btn-default" type="submit" style="height:44px;margin:10px;width:75px;">Add</button>
                     </div>
                 </div>
+
             </form>
         </div>
     </div>

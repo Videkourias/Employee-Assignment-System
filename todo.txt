@@ -1,7 +1,17 @@
-- Formatting/CSS
-- SQL Inject Protection on forms (already built in?)
+1. Allow selection of employees/locations for deletion by pressing row (instead of checkbox)
+2. Add delete location
+3. export in file JS definitions to external file and reference file using Jinja and Flask
+4. Change 'employer' to 'admin'
+3. View user should allow modification of user's/location's values (same for view location)
+4. Allow drag and drop for assignment of employees to locations
+5. On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
+
 - Limit password attempts
-- View user should allow modification of user's values
+- SQL Inject Protection on forms (already built in?)
+- newEmployee/newLocation new image at top of page
+- Formatting/CSS
+
+
 
 
 Q

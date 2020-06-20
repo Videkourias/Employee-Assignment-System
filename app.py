@@ -1,11 +1,3 @@
-"""
-Name: app.py
-Date: 2020-06-12
-Purpose: Python document defines the routing and transfer of information/focus between various html pages.
-    purpose of html pages is to create a UI for the assignment of Employees to Locations, along with the necessary
-    infrastructure to facilitate that
-"""
-
 # Import libraries
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from functools import wraps
@@ -320,13 +312,12 @@ def deleteEmployee():
 
         # Gets form information from deleteEmployee.html
         delete = request.form.getlist('empDel')
-        confirm = request.form.get('confirm')
 
         # Track number of employees deleted
         numDel = 0
 
         # Deletes all employees in delete list, so long as confirm was selected
-        if delete and confirm == 'confirm':
+        if delete:
             # Get assignedTo, if assignedTo > 0 lower from location's numEmployee count, then drop employee
             # users and user_details
             for email in delete:
