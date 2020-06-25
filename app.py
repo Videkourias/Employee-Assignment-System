@@ -1,10 +1,9 @@
 # Import libraries
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from functools import wraps
-from wtforms import Form, StringField, PasswordField, IntegerField, TextAreaField, validators, SelectField
+from wtforms import Form, StringField, validators, SelectField
 from passlib.hash import sha256_crypt
 from flask_mysqldb import MySQL
-from flask_script import Manager
 from datetime import datetime
 
 # Flask instance
@@ -563,10 +562,11 @@ def updatePassword():
             # Update DB with new hash
             passw = sha256_crypt.hash(newPassword)
             cur.execute("update users set password = %s where email=%s", (passw, session['username']))
-            flash('Your password has been updated', 'success')
 
             mysql.connection.commit()
             cur.close()
+
+            flash('Your password has been updated', 'success')
             return redirect(url_for('logout'))
         else:
             flash('Incorrect password', 'warning')
@@ -576,7 +576,6 @@ def updatePassword():
 
 
 if __name__ == '__main__':
-    app.secret_key = 'hel#33'
+    app.secret_key = 'xb8x04xb0x11a$[k;fxc3x1bxafx06xddU'
     app.debug = True
-    manager = Manager(app)
-    manager.run()
+    app.run()
