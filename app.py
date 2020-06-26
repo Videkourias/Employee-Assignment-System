@@ -3,21 +3,15 @@ from flask import Flask, render_template, flash, redirect, url_for, session, req
 from functools import wraps
 from wtforms import Form, StringField, validators, SelectField
 from passlib.hash import sha256_crypt
-from flask_mysqldb import MySQL
 from datetime import datetime
+import psycopg2
+import psycopg2.extras
 
 # Flask instance
 app = Flask(__name__)
 
-# Configure MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'timecards'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
-# Initialize MySQL
-mysql = MySQL(app)
+# Initialize PostgreSQL
+conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
 
 
 # Redirects to login page
@@ -28,7 +22,7 @@ def index():
 
 # Login
 # Function called for login page. Will test form information against DB information, hashed/salted before comparing
-# Will direct user to employerHome if account entered is userType 1. Otherwise, will redirect to employeeHome
+# Will direct user to employerHome if account entered is usertype 1. Otherwise, will redirect to employeeHome
 # If account non-existent, password mismatch, or fields empty, will redirect to self (login.html)
 # Currently no limit on password entry attempts
 @app.route('/login', methods=['GET', 'POST'])
@@ -36,7 +30,7 @@ def login():
     """
     name: login
     input/output: Accessed through "/login" path by GET or POST. Will direct user to employerHome if account
-        entered is userType 1. Otherwise, will redirect to employeeHome. If account non-existent, password mismatch,
+        entered is usertype 1. Otherwise, will redirect to employeeHome. If account non-existent, password mismatch,
         or fields empty, will redirect to self (login.html)
 
     """
@@ -51,28 +45,28 @@ def login():
             return render_template('login.html')
 
         # Checks if any entry with the provided email exists
-        cur = mysql.connection.cursor()
-        result = cur.execute("SELECT * FROM users WHERE email = %s", [usernameCandidate])
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute("SELECT * FROM users WHERE email = %s", [usernameCandidate])
 
-        if result > 0:
+        if cur.rowcount > 0:
             data = cur.fetchone()
             cur.close()
 
             # Pull data from DB
             password = data['password']
-            userType = data['usertype']
+            usertype = data['usertype']
 
             if sha256_crypt.verify(passwordCandidate, password):
                 # Update current session information
                 session['logged_in'] = True
                 session['username'] = data['email']
-                session['user_type'] = userType
+                session['user_type'] = usertype
 
                 # Redirect to correct home page
                 flash('You are now logged in', 'success')
-                if userType == 1:
+                if usertype == 1:
                     return redirect(url_for('employerHome'))
-                elif userType == 2:
+                elif usertype == 2:
                     return redirect(url_for('employeeHome'))
                 else:
                     return redirect(url_for('locUserHome'))
@@ -168,17 +162,17 @@ def employerHome():
 # Displays employees placement data based on username (email)
 # pulled from current session data
 # If user is using administrative account (employer account)
-# they will likely not have a corresponding user_details entry
+# they will likely not have a corresponding employees entry
 # and this routine will simply flash an error
 @app.route('/employeeHome')
 @isLoggedIn
 def employeeHome():
-    cur = mysql.connection.cursor()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     username = session['username']
 
-    # Check that account exists in user_details
-    result = cur.execute("select * from user_details where email=%s", [username])
-    if result > 0:
+    # Check that account exists in employees
+    cur.execute("select * from employees where email=%s", [username])
+    if cur.rowcount > 0:
         row = cur.fetchone()
         cur.close()
         return render_template('employeeHome.html', valid=True, employee=row)
@@ -197,12 +191,12 @@ def employeeHome():
 @app.route('/locUserHome')
 @isLoggedLocUser
 def locUserHome():
-    cur = mysql.connection.cursor()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     username = session['username']
 
     # Check that account has associated location entry (checking the user is not admin)
-    result = cur.execute("select * from locations where email=%s", [username])
-    if result > 0:
+    cur.execute("select * from locations where email=%s", [username])
+    if cur.rowcount > 0:
         row = cur.fetchone()
         cur.close()
         return render_template('locUserHome.html', valid=True, location=row)
@@ -218,11 +212,11 @@ def locUserHome():
 @app.route('/viewEmployees')
 @isLoggedAdmin
 def viewEmployees():
-    cur = mysql.connection.cursor()
-    result = cur.execute("select * from user_details where email in (select email from users where usertype=2)")
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from employees where email in (select email from users where usertype=2)")
 
     # Test if employees exist in DB, if not, exit prematurely
-    if result > 0:
+    if cur.rowcount > 0:
         rows = cur.fetchall()
 
         # Debugging, might flood log if left on when live
@@ -244,11 +238,11 @@ def viewEmployees():
 @app.route('/viewLocations')
 @isLoggedAdmin
 def viewLocations():
-    cur = mysql.connection.cursor()
-    result = cur.execute("select * from locations")
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from locations")
 
     # Test if locations exist in DB, if not, exit prematurely
-    if result > 0:
+    if cur.rowcount > 0:
         rows = cur.fetchall()
 
         # Debugging, might flood log if left on when live
@@ -271,14 +265,13 @@ def viewLocations():
 @app.route('/assignEmployees')
 @isLoggedAdmin
 def assignEmployees():
-    cur = mysql.connection.cursor()
-    result = cur.execute("select * from locations")
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from locations")
 
     # Test if locations exist in DB, if not, exit prematurely
-    if result > 0:
+    if cur.rowcount > 0:
         rows = cur.fetchall()
-        result = cur.execute(
-            "select name, email, assignedTo from user_details where assignedTo = 0")
+        cur.execute("select name, email, assignedto from employees where assignedto = 0")
         urows = cur.fetchall()
 
         # Logging
@@ -296,13 +289,13 @@ def assignEmployees():
 
 
 # Remove Employees from DB
-# Will remove employee from location assignment and drop their users and user_details rows from the DB
-# Only presents users from user_details table, not users table. Therefore some accounts need to be manually deleted
+# Will remove employee from location assignment and drop their users and employees rows from the DB
+# Only presents users from employees table, not users table. Therefore some accounts need to be manually deleted
 # Contains a button for confirmation just in case :)
 @app.route('/deleteEmployee', methods=['GET', 'POST'])
 @isLoggedAdmin
 def deleteEmployee():
-    cur = mysql.connection.cursor()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Submitting employee to be deleted
     if request.method == 'POST':
@@ -317,19 +310,19 @@ def deleteEmployee():
 
         # Deletes all employees in delete list, so long as confirm was selected
         if delete:
-            # Get assignedTo, if assignedTo > 0 lower from location's numEmployee count, then drop employee
-            # users and user_details
+            # Get assignedto, if assignedto > 0 lower from location's numEmployee count, then drop employee
+            # users and employees
             for email in delete:
-                result = cur.execute("select assignedTo from user_details where email= %s", [email])
+                cur.execute("select assignedto from employees where email= %s", [email])
                 row = cur.fetchone()
 
-                if row['assignedTo'] > 0:
-                    cur.execute("update locations set numEmployees = numEmployees - 1 where id= %s",
-                                [row['assignedTo']])
+                if row['assignedto'] > 0:
+                    cur.execute("update locations set numemployees = numemployees - 1 where id= %s",
+                                [row['assignedto']])
 
-                cur.execute("delete from user_details where email = %s", [email])
+                cur.execute("delete from employees where email = %s", [email])
                 cur.execute("delete from users where email = %s", [email])
-                mysql.connection.commit()
+                conn.commit()
                 numDel += 1
 
         flash('Deleted {} employees'.format(numDel), 'info')
@@ -338,10 +331,10 @@ def deleteEmployee():
     # Get request
     else:
         # Grabs all employee info
-        result = cur.execute("select * from user_details")
+        cur.execute("select * from employees")
 
         # Only displays if employees exist in DB
-        if result > 0:
+        if cur.rowcount > 0:
             row = cur.fetchall()
             cur.close()
             return render_template('deleteEmployee.html', employees=row)
@@ -357,8 +350,8 @@ def deleteEmployee():
 class NewEmployeeForm(Form):
     email = StringField('email', [validators.Length(min=1, max=50)])
     name = StringField('name', [validators.Length(min=1, max=50)])
-    assignedTo = SelectField('assignedTo', validate_choice=False)
-    userType = SelectField('userType', choices=[('1', '1'), ('2', '2')])
+    assignedto = SelectField('assignedto', validate_choice=False)
+    usertype = SelectField('usertype', choices=[('1', '1'), ('2', '2')])
 
 
 # Form to verify/restrict new location data
@@ -374,7 +367,7 @@ class NewLocationForm(Form):
 @app.route('/locationInfo/<int:id>', methods=['GET', 'POST'])
 @isLoggedAdmin
 def locationInfo(id):
-    cur = mysql.connection.cursor()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Submitting employee information to be assigned
     if request.method == 'POST':
@@ -390,20 +383,20 @@ def locationInfo(id):
         # Removes selected employees from location, lowers num employees column for each employee removed
         if emailRemove:
             for email in emailRemove:
-                cur.execute("update user_details set assignedTo = 0, lastUpdate = %s where email = %s",
+                cur.execute("update employees set assignedto = 0, lastupdate = %s where email = %s",
                             (currentTime, email))
-                cur.execute("update locations set numEmployees = numEmployees - 1, lastUpdate = %s where id = %s",
+                cur.execute("update locations set numemployees = numemployees - 1, lastupdate = %s where id = %s",
                             (currentTime, id))
-                mysql.connection.commit()
+                conn.commit()
 
         # Assign employees to new location, increase num employees column for each employee assigned
         if emailAdd:
             for email in emailAdd:
-                cur.execute("update user_details set assignedTo = %s, lastUpdate = %s where email = %s",
+                cur.execute("update employees set assignedto = %s, lastupdate = %s where email = %s",
                             (id, currentTime, email))
-                cur.execute("update locations set numEmployees = numEmployees + 1, lastUpdate = %s where id = %s",
+                cur.execute("update locations set numemployees = numemployees + 1, lastupdate = %s where id = %s",
                             (currentTime, id))
-                mysql.connection.commit()
+                conn.commit()
 
         # Will reach at end of POST request, redirects to URL as GET request
         return redirect(url_for('locationInfo', id=id))
@@ -411,16 +404,17 @@ def locationInfo(id):
     # Get request
     else:
         # Grabs location info and employee info (assigned to this location and unassigned)
-        iresult = cur.execute("select * from locations where id = %s", [id])
+        cur.execute("select * from locations where id = %s", [id])
+        result = cur.rowcount
         row = cur.fetchone()
-        result = cur.execute("select * from user_details where assignedTo = %s", [id])
+        cur.execute("select * from employees where assignedto = %s", [id])
         prows = cur.fetchall()
-        result = cur.execute("select * from user_details where assignedTo = 0")
+        cur.execute("select * from employees where assignedto = 0")
         urows = cur.fetchall()
         cur.close()
 
         # locationInfo.html depends on the location existing in the DB
-        if iresult > 0:
+        if result > 0:
             return render_template('locationInfo.html', location=row, assigned=prows, unassigned=urows)
         else:
             # If the location doesn't exist, user sent back to assignEmployees.html
@@ -429,17 +423,17 @@ def locationInfo(id):
 
 # Add Employee
 # Allows admin to add a new user the the DB
-# User needs to input name, email, assignedTo, and userType columns. ID column is auto-filled
-# A userType of 1 indicates an admin(employer) user Admin users aren't added to the user_details table (unnecessary)
-# A userType of 2 indicates an employee user
+# User needs to input name, email, assignedto, and usertype columns. ID column is auto-filled
+# A usertype of 1 indicates an admin(employer) user Admin users aren't added to the employees table (unnecessary)
+# A usertype of 2 indicates an employee user
 @app.route('/newEmployee', methods=['GET', 'POST'])
 @isLoggedAdmin
 def newEmployee():
     form = NewEmployeeForm(request.form)
 
     # Fetch all locations from DB for assignment dropdown in form
-    cur = mysql.connection.cursor()
-    result = cur.execute("select * from locations")
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from locations")
     rows = cur.fetchall()
 
     if request.method == 'POST' and form.validate():
@@ -448,31 +442,32 @@ def newEmployee():
         # Get info from form
         name = form.name.data
         email = form.email.data
-        assignedTo = form.assignedTo.data
-        userType = form.userType.data
+        assignedto = form.assignedto.data
+        usertype = form.usertype.data
         currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # Check if email already in use
-        cur = mysql.connection.cursor()
-        result = cur.execute("select * from users where email=%s", [email])
-        if result > 0:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute("select * from users where email=%s", [email])
+
+        if cur.rowcount > 0:
             flash('Email already in use', 'warning')
             return render_template('newEmployee.html')
 
         # Add new user to DB for logging info
         cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
-                    (email, sha256_crypt.hash('0000'), userType))
+                    (email, sha256_crypt.hash('0000'), usertype))
 
         # Add new user to DB for placement info, only if user is an employee
-        if userType == '2':
-            cur.execute("insert into user_details(email, name, assignedTo, lastUpdate) values(%s, %s, %s, %s)",
-                        (email, name, assignedTo, currentTime))
+        if usertype == '2':
+            cur.execute('insert into employees values(%s, %s, %s, %s)',
+                        (email, name, assignedto, currentTime))
 
-            # If new user assigned to location (assignedTo != 0), update locations numEmployees column
-            if assignedTo != 0:
-                cur.execute("update locations set numEmployees = numEmployees + 1 where id = %s", [assignedTo])
+            # If new user assigned to location (assignedto != 0), update locations numemployees column
+            if assignedto != 0:
+                cur.execute("update locations set numemployees = numemployees + 1 where id = %s", [assignedto])
 
-        mysql.connection.commit()
+        conn.commit()
         cur.close()
 
         flash('New User has been added to the database', 'success')
@@ -500,12 +495,12 @@ def newLocation():
         address = form.address.data
         email = form.email.data
 
-        cur = mysql.connection.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         # Check location account doesn't already exist
-        result = cur.execute("select * from locations where email = %s", [email])
+        cur.execute("select * from locations where email = %s", [email])
 
-        if result > 0:
+        if cur.rowcount > 0:
             flash('Location with that email already exists', 'warning')
             return render_template('newLocation.html')
 
@@ -514,9 +509,9 @@ def newLocation():
         # Create user corresponding to the new location
         cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",(email, sha256_crypt.hash('0000')))
         # Insert location
-        cur.execute("insert into locations(address, name, email, lastUpdate) values(%s, %s, %s, %s)",
+        cur.execute("insert into locations(address, name, email, lastupdate) values(%s, %s, %s, %s)",
                     (address, name, email, currentTime))
-        mysql.connection.commit()
+        conn.commit()
 
         cur.close()
 
@@ -539,7 +534,7 @@ def newLocation():
 def updatePassword():
     if request.method == 'POST':
         app.logger.info('In POST')
-        cur = mysql.connection.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         passwordCandidate = request.form['currentPassword']
         newPassword = request.form['newPassword']
@@ -550,8 +545,8 @@ def updatePassword():
             return render_template('updatePassword.html')
 
         # Pull hashed password from DB to compare
-        result = cur.execute("select password from users where email=%s", [session['username']])
-        if result > 0:
+        cur.execute("select password from users where email=%s", [session['username']])
+        if cur.rowcount > 0:
             dbPass = cur.fetchone()
         else:
             flash('Error in changing password', 'warning')
@@ -563,7 +558,7 @@ def updatePassword():
             passw = sha256_crypt.hash(newPassword)
             cur.execute("update users set password = %s where email=%s", (passw, session['username']))
 
-            mysql.connection.commit()
+            conn.commit()
             cur.close()
 
             flash('Your password has been updated', 'success')
@@ -579,3 +574,4 @@ if __name__ == '__main__':
     app.secret_key = 'xb8x04xb0x11a$[k;fxc3x1bxafx06xddU'
     app.debug = True
     app.run()
+    conn.close()

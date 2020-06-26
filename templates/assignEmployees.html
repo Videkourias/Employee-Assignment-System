@@ -39,7 +39,7 @@ Bottom of page displays all Employees who are not assigned to any location (assi
                         <td>{{loc['id']}}</td>
                         <td>{{loc['name']}}</td>
                         <td>{{loc['address']}}</td>
-                        <td>{{loc['numEmployees']}}</td>
+                        <td>{{loc['numemployees']}}</td>
                         <!-- Link to page containing worker information of location -->
                         <td><a href="{{ url_for('locationInfo', id=loc['id']) }}">Add/remove workers</a></td>
                     </tr>
@@ -64,7 +64,7 @@ Bottom of page displays all Employees who are not assigned to any location (assi
                       <tr>
                           <td>{{emp['name']}}</td>
                           <td>{{emp['email']}}</td>
-                          <td>{{emp['assignedTo']}}</td>
+                          <td>{{emp['assignedto']}}</td>
                       </tr>
                 {% endfor %}
             </tbody>

@@ -26,14 +26,14 @@
        Input/Output: Takes a string called value as input, value corresponds to the value of the option selected
                 from the selection dropdown on the form.
        Purpose: Function called to display or hide elements based on what user type is being created
-                ie. Selecting a user type(value) of 1 will hide the assignedTo field
+                ie. Selecting a user type(value) of 1 will hide the assignedto field
     */
     function newEmployee(value){
         if (value == 1){
-            document.getElementById("assignedTo").style.display="none";
+            document.getElementById("assignedto").style.display="none";
         }
         else{
-            document.getElementById("assignedTo").style.display="block";
+            document.getElementById("assignedto").style.display="block";
         }
     }
 </script>
@@ -44,7 +44,7 @@
         <div class="hello1">
             <form method="post" >
 
-                <div class="illustration" style=""><i class="icon ion-ios-navigate" style="font-size:90px;margin:0px;padding:0px;"></i></div>
+                <div class="illustration"><i class="icon ion-ios-navigate" style="font-size:90px;margin:0px;padding:0px;"></i></div>
 
                 <!-- Name and email fields -->
                 <div class="form-group"><label class="control-label">Name</label><input class="form-control" type="text" name="name" style="height:35px;"></div>
@@ -52,15 +52,15 @@
 
                 <!-- User type field -->
                 <div class="form-group"><label class="control-label">User Type</label>
-                    <select class="form-control" name="userType" onchange="newEmployee(value)">
+                    <select class="form-control" name="usertype" onchange="newEmployee(value)">
                         <option value="1">Admin</option>
                         <option value="2" selected>Employee</option>
                     </select>
                 </div>
 
                 <!-- Assignment Field -->
-                <div class="form-group"  id="assignedTo"><label class="control-label">Assignment</label>
-                    <select class="form-control" name="assignedTo">
+                <div class="form-group"  id="assignedto"><label class="control-label">Assignment</label>
+                    <select class="form-control" name="assignedto">
                         <option value="0">Unassigned</option>
                         {% for row in rows %}
                             <option value={{ row['id'] }}>{{ row['name'] }}</option>
