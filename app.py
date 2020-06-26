@@ -297,7 +297,7 @@ def assignEmployees():
 def deleteEmployee():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    # Submitting employee to be deleted
+    # Submitting employee(s) to be deleted
     if request.method == 'POST':
 
         app.logger.info('In POST')
@@ -342,6 +342,59 @@ def deleteEmployee():
             # If the location doesn't exist, user sent back to employerHome.html
             flash('No users found', 'info')
             return redirect(url_for('employerHome'))
+
+
+# Remove Locations from DB
+# Also removes associated user account
+# Will remove employees assigned to selected location(s) and change employees assignedto column to 0
+# Contains a button for confirmation just in case :)
+@app.route('/deleteLocation', methods=['GET', 'POST'])
+@isLoggedAdmin
+def deleteLocation():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    # Submitting location(s) to be deleted
+    if request.method == 'POST':
+
+        app.logger.info('In POST')
+
+        # Gets form information from deleteLocation.html
+        delete = request.form.getlist('locDel')
+
+        # Track number of locations deleted
+        numDel = 0
+
+        # Deletes all locations in delete list, so long as confirm was selected
+        if delete:
+            for id in delete:
+                cur.execute("select email from locations where id = %s", [id])
+                email = cur.fetchone()['email']
+
+                cur.execute("update employees set assignedto = 0 where assignedto = %s", [id])
+
+                cur.execute("delete from locations where id = %s", [id])
+                cur.execute("delete from users where email = %s", [email])
+                conn.commit()
+                numDel += 1
+
+        flash('Deleted {} location(s)'.format(numDel), 'info')
+        return redirect(url_for('deleteLocation'))
+
+    # Get request
+    else:
+        # Grabs all employee info
+        cur.execute("select * from locations")
+
+        # Only displays if locations exist in DB
+        if cur.rowcount > 0:
+            row = cur.fetchall()
+            cur.close()
+            return render_template('deleteLocation.html', locations=row)
+        else:
+            # If the location doesn't exist, user sent back to employerHome.html
+            flash('No locations found', 'info')
+            return redirect(url_for('employerHome'))
+
 
 
 # FORMS BELOW ARE ONLY NECESSARY IF NEED TO VALIDATE INPUT
