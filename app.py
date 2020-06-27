@@ -22,14 +22,14 @@ def index():
 
 # Login
 # Function called for login page. Will test form information against DB information, hashed/salted before comparing
-# Will direct user to employerHome if account entered is usertype 1. Otherwise, will redirect to employeeHome
+# Will direct user to adminHome if account entered is usertype 1. Otherwise, will redirect to employeeHome
 # If account non-existent, password mismatch, or fields empty, will redirect to self (login.html)
 # Currently no limit on password entry attempts
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """
     name: login
-    input/output: Accessed through "/login" path by GET or POST. Will direct user to employerHome if account
+    input/output: Accessed through "/login" path by GET or POST. Will direct user to adminHome if account
         entered is usertype 1. Otherwise, will redirect to employeeHome. If account non-existent, password mismatch,
         or fields empty, will redirect to self (login.html)
 
@@ -65,7 +65,7 @@ def login():
                 # Redirect to correct home page
                 flash('You are now logged in', 'success')
                 if usertype == 1:
-                    return redirect(url_for('employerHome'))
+                    return redirect(url_for('adminHome'))
                 elif usertype == 2:
                     return redirect(url_for('employeeHome'))
                 else:
@@ -152,16 +152,16 @@ def logout():
 
 
 # Employer Home
-@app.route('/employerHome')
+@app.route('/adminHome')
 @isLoggedAdmin
-def employerHome():
-    return render_template('employerHome.html')
+def adminHome():
+    return render_template('adminHome.html')
 
 
 # Employee Home
 # Displays employees placement data based on username (email)
 # pulled from current session data
-# If user is using administrative account (employer account)
+# If user is using administrative account (admin account)
 # they will likely not have a corresponding employees entry
 # and this routine will simply flash an error
 @app.route('/employeeHome')
@@ -186,7 +186,7 @@ def employeeHome():
 # Location User Home
 # Displays home page of account associated with location
 # Will display current number of employees and allow the user to submit requests to admin users
-# If user is using administrative account (employer account), they will not have a corresponding location entry
+# If user is using admin account, they will not have a corresponding location entry
 # and this routine will simply flash an error
 @app.route('/locUserHome')
 @isLoggedLocUser
@@ -230,7 +230,7 @@ def viewEmployees():
 
     else:
         flash('No employees found', 'info')
-        return render_template('employerHome.html')
+        return render_template('adminHome.html')
 
 
 # View Locations
@@ -256,7 +256,7 @@ def viewLocations():
 
     else:
         flash('No locations found', 'info')
-        return render_template('employerHome.html')
+        return render_template('adminHome.html')
 
 
 # Assign Employees to Locations
@@ -285,7 +285,7 @@ def assignEmployees():
 
     else:
         flash('No locations found', 'info')
-        return render_template('employerHome.html')
+        return render_template('adminHome.html')
 
 
 # Remove Employees from DB
@@ -339,9 +339,9 @@ def deleteEmployee():
             cur.close()
             return render_template('deleteEmployee.html', employees=row)
         else:
-            # If the location doesn't exist, user sent back to employerHome.html
+            # If the location doesn't exist, user sent back to adminHome.html
             flash('No users found', 'info')
-            return redirect(url_for('employerHome'))
+            return redirect(url_for('adminHome'))
 
 
 # Remove Locations from DB
@@ -392,9 +392,9 @@ def deleteLocation():
             cur.close()
             return render_template('deleteLocation.html', locations=row)
         else:
-            # If the location doesn't exist, user sent back to employerHome.html
+            # If the location doesn't exist, user sent back to adminHome.html
             flash('No locations found', 'info')
-            return redirect(url_for('employerHome'))
+            return redirect(url_for('adminHome'))
 
 
 
@@ -478,7 +478,7 @@ def locationInfo(id):
 # Add Employee
 # Allows admin to add a new user the the DB
 # User needs to input name, email, assignedto, and usertype columns. ID column is auto-filled
-# A usertype of 1 indicates an admin(employer) user Admin users aren't added to the employees table (unnecessary)
+# A usertype of 1 indicates an admin user. Admin users aren't added to the employees table
 # A usertype of 2 indicates an employee user
 @app.route('/newEmployee', methods=['GET', 'POST'])
 @isLoggedAdmin
@@ -526,7 +526,7 @@ def newEmployee():
 
         flash('New User has been added to the database', 'success')
 
-        return redirect(url_for('employerHome'))
+        return redirect(url_for('adminHome'))
     else:
         if request.method == 'POST':
             flash('Please fill all blanks', 'warning')
@@ -571,7 +571,7 @@ def newLocation():
 
         flash('New location has been added to the database', 'success')
 
-        return redirect(url_for('employerHome'))
+        return redirect(url_for('adminHome'))
 
     # Invalid form, still POST
     else:
