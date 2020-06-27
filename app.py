@@ -364,6 +364,7 @@ def deleteLocation():
         # Track number of locations deleted
         numDel = 0
 
+        # TODO: Reduce ID value for each location deleted, so as to have consistent location ids
         # Deletes all locations in delete list, so long as confirm was selected
         if delete:
             for id in delete:
