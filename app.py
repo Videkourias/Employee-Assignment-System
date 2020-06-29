@@ -325,6 +325,7 @@ def deleteEmployee():
                 conn.commit()
                 numDel += 1
 
+        cur.close()
         flash('Deleted {} employees'.format(numDel), 'info')
         return redirect(url_for('deleteEmployee'))
 
@@ -364,7 +365,6 @@ def deleteLocation():
         # Track number of locations deleted
         numDel = 0
 
-        # TODO: Reduce ID value for each location deleted, so as to have consistent location ids
         # Deletes all locations in delete list, so long as confirm was selected
         if delete:
             for id in delete:
@@ -378,6 +378,7 @@ def deleteLocation():
                 conn.commit()
                 numDel += 1
 
+        cur.close()
         flash('Deleted {} location(s)'.format(numDel), 'info')
         return redirect(url_for('deleteLocation'))
 

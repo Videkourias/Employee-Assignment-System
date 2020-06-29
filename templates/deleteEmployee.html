@@ -8,6 +8,14 @@
   body {
     background-color:rgba(38,82,31,0.35);
   }
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 </style>
 
 
@@ -27,6 +35,28 @@
             submit.style.display = "none";
         }
     }
+    /* Name: selectRow
+       Input/Output: Input is pkey associated with employee row
+       Purpose: Will invert the checked attribute of the checkbox input in the row, and also flip the rows
+            text color to display selection
+     */
+    function selectRow(pkey){
+        var row = document.getElementById(pkey);
+        var cell = document.getElementById(pkey + "U");
+
+        //Invert input tags checked attribute
+        cell.checked = !cell.checked;
+
+        //Change color to indicate selection
+        if(row.style.color != "red"){
+            row.style.color = "red";
+        }
+        else{
+            row.style.color = "white";
+        }
+
+    }
+
 </script>
 {% endblock %}
 
@@ -48,11 +78,13 @@
                 </thead>
                 <tbody>
                     {% for emp in employees %}
-                      <tr onclick="alert('AHHH');">
+                      <tr class="unselectable" id="{{ emp['email'] }}" onclick="selectRow(id)" value=id>
                         <td>{{emp['name']}}</td>
                         <td>{{emp['email']}}</td>
                         <td>{{emp['assignedto']}}</td>
-                        <td><input type="checkbox" name="empDel" value="{{ emp['email'] }}"/></td>
+                        <td hidden>
+                            <input id="{{ emp['email'] }}U" name="empDel" type="checkbox" value="{{ emp['email'] }}"/>
+                        </td>
                       </tr>
                     {% endfor %}
                 </tbody>
