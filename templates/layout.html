@@ -1,3 +1,4 @@
+<!-- Layout acts as parent document for all future templates, everything here is passed downwards -->
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -5,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Placement System</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/bootstrap/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/bootstrap/css/bootstrap-theme.min.css') }}">
 
     <!-- Allows child templates to override with custom links/inline_style -->
     {% block links %}{% endblock %}
@@ -32,8 +32,6 @@
     <script src="{{ url_for('static', filename='assets/bootstrap/js/bootstrap.min.js') }}"></script>
 
 
-      <!-- P SURE THIS IS USELESS -->
-      {% include 'includes/_navbar.html' %}
   </div>
   </body>
 

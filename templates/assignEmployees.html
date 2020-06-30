@@ -1,28 +1,15 @@
-<!--
-Page acts as a overview for assignment of Employees to Locations
-Top of page displays all locations stored in DB, with pertinent column data
-Each location row holds an additional column that links to that locations specific "locationInfo.html" page
-Bottom of page displays all Employees who are not assigned to any location (assignedTo == 0)
--->
 {% extends 'layout.html' %}
 {% block links %}
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.min.css') }}">
 {% endblock %}
 
-{% block inline_style %}
-<style media="screen">
-  body {
-    background-color:rgba(38,82,31,0.35);
-  }
-</style>
-{% endblock %}
 
 {% block body %}
     <br>
     <br>
     <!-- LIST OF ALL LOCATIONS -->
     <div class="table-responsive jumbotron text-center" style="background-color:#27404c; color:white;">
-        <h1 style="color:white;">Locations</h1>
+        <h1>Locations</h1>
         <br>
         <table id="locations" class="table table-striped table-bordered table-hover">
             <thead style="width:1058px;height:50px;padding:0px;">
@@ -50,7 +37,7 @@ Bottom of page displays all Employees who are not assigned to any location (assi
 
     <!-- LIST OF UNASSIGNED EMPLOYEES -->
     <div class="table-responsive jumbotron text-center" style="background-color:#27404c; color:white;">
-        <h1 style="color:white;">Unassigned Employees</h1>
+        <h1>Unassigned Employees</h1>
         <table class="table table-striped table-bordered">
             <thead style="width:1058px;height:50px;padding:0px;">
                 <tr style="padding:0px;">

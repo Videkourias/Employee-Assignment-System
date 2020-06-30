@@ -1,32 +1,13 @@
 {% extends 'layout.html' %}
 {% block links %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/fonts/ionicons.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Login-Form-Clean.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Registration-Form-with-Photo.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Custom.css') }}">
     <script src="{{ url_for('static', filename='assets/js/helper.js') }}"></script>
-{% endblock %}
-{% block inline_style %}
-<style media="screen">
-  body
-  {
-
-  }
-  .hello{
-      width: 100%;
-      margin: auto;
-  }
-  .hello1{
-      width: 80%;
-      margin: auto;
-  }
-</style>
 {% endblock %}
 
 
 {% block body %}
-    <div class="jumbotron text-center hello" style="background-color:#27404c;color:white;">
-        <div class="hello1">
+    <div class="jumbotron text-center" style="background-color:#27404c;color:white;">
+        <div class="reducedWidth">
             <form method="post" >
 
                 <!--<div class="illustration"><i class="icon ion-ios-navigate" style="font-size:90px;margin:0px;padding:0px;"></i></div>-->
@@ -36,8 +17,8 @@
                 <br>
 
                 <!-- Name and email fields -->
-                <div class="form-group"><label class="control-label">Name</label><input class="form-control" type="text" name="name" style="height:35px;"></div>
-                <div class="form-group"><label class="control-label">Email</label><input class="form-control" type="email" name="email" style="height:35px;"></div>
+                <div class="form-group"><label class="control-label">Name</label><input class="form-control reducedHeight" type="text" name="name"></div>
+                <div class="form-group"><label class="control-label">Email</label><input class="form-control" type="email" name="email"></div>
 
                 <!-- User type field -->
                 <div class="form-group"><label class="control-label">User Type</label>
@@ -48,19 +29,19 @@
                 </div>
 
                 <!-- Assignment Field -->
-                <div class="form-group"  id="assignedto"><label class="control-label">Assignment</label>
+                <div class="form-group" id="assignedto"><label class="control-label">Assignment</label>
                     <select class="form-control" name="assignedto">
                         <option value="0">Unassigned</option>
-                        {% for row in rows %}
-                            <option value={{ row['id'] }}>{{ row['name'] }}</option>
+                        {% for loc in locations %}
+                            <option value={{ loc['id'] }}>{{ loc['name'] }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <!-- Submit Button Field -->
-                <div style="height:44px;">
-                    <div class="btn-group" role="group" style="height:44px;margin:10px 10px 10px 45px;">
-                        <button class="btn btn-default" type="submit" style="height:44px;margin:10px;width:75px;">Add</button>
+                <div>
+                    <div class="btn-group">
+                        <button class="btn btn-default" type="submit">Add</button>
                     </div>
                 </div>
 

@@ -1,6 +1,4 @@
-<!--
-Persistent navigation bar located across top of page
--->
+<!-- Persistent navigation bar located across top of page -->
 <nav class="navbar navbar-dark navbar-expand-sm bg-dark fixed-top">
 
         <ul class="navbar-nav">
@@ -14,6 +12,9 @@ Persistent navigation bar located across top of page
           {% else %}
           {% if session.user_type == 2 %}
             <li class="nav-item "><a class="nav-link " href="{{ url_for('employeeHome') }}">Dashboard</a></li>
+          {% endif %}
+          {% if session.user_type == 3 %}
+            <li class="nav-item "><a class="nav-link " href="{{ url_for('locUserHome') }}">Dashboard</a></li>
           {% endif %}
           {% endif %}
             <li class="nav-item "><a class="nav-link " href="{{ url_for('logout') }}">Logout</a></li>

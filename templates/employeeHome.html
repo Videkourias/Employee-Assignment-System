@@ -1,25 +1,22 @@
 {% extends 'layout.html' %}
 
-{% block inline_style %}
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bitter:400,700">
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Header-Dark.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.css') }}">
-{% endblock %}
-
 {% block body %}
     <br>
+    <br>
     <div>
-        <div class="jumbotron text-center" style="background-color:#27404c;">
-            <h2 class="text-center" style="color:white;">Welcome {{session['username']}}</h2>
-            <br><br>
+        <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
+            <h2 class="text-center">Welcome {{session['username']}}</h2>
+
+            <br>
+            <br>
 
             <!-- Only executes block if user_details row was found -->
             {% if valid %}
-                <h2>Currently placed at: {{ employee['assignedto'] }}</h2>
+                <h2>Currently placed at: {{ location }}</h2>
                 <h2>This position was last updated: {{ employee['lastupdate'] }}</h2>
             {% endif %}
-            <div class="btn-group" role="group">
-            </div>
+
+
         </div>
     </div>
 {% endblock %}

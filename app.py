@@ -171,11 +171,19 @@ def employeeHome():
     username = session['username']
 
     # Check that account exists in employees
-    cur.execute("select * from employees where email=%s", [username])
+    cur.execute("select assignedTo, lastUpdate from employees where email=%s", [username])
     if cur.rowcount > 0:
         row = cur.fetchone()
+
+        # Provides name of location if employee is assigned
+        if row['assignedto'] == 0:
+            location = "Unassigned"
+        else:
+            cur.execute("select name from locations where id = %s", [row['assignedto']])
+            location = cur.fetchone()['name']
+
         cur.close()
-        return render_template('employeeHome.html', valid=True, employee=row)
+        return render_template('employeeHome.html', valid=True, employee=row, location=location)
 
     # If placement account does not exist, throw error
     cur.close()
@@ -385,7 +393,7 @@ def deleteLocation():
     # Get request
     else:
         # Grabs all employee info
-        cur.execute("select * from locations")
+        cur.execute("select * from locations order by id asc")
 
         # Only displays if locations exist in DB
         if cur.rowcount > 0:
@@ -488,7 +496,7 @@ def newEmployee():
 
     # Fetch all locations from DB for assignment dropdown in form
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("select * from locations")
+    cur.execute("select * from locations order by id asc")
     rows = cur.fetchall()
 
     if request.method == 'POST' and form.validate():
@@ -503,7 +511,7 @@ def newEmployee():
 
         # Check if email already in use
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute("select * from users where email=%s", [email])
+        cur.execute("select id, name from users where email=%s", [email])
 
         if cur.rowcount > 0:
             flash('Email already in use', 'warning')
@@ -531,7 +539,7 @@ def newEmployee():
     else:
         if request.method == 'POST':
             flash('Please fill all blanks', 'warning')
-    return render_template('newEmployee.html', form=form, rows=rows)
+    return render_template('newEmployee.html', form=form, locations=rows)
 
 
 # Add Location

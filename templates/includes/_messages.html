@@ -1,6 +1,4 @@
-<!--
-Defines flash error/warning message format
--->
+<!-- Template for error/warning messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}

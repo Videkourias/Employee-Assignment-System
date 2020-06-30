@@ -1,75 +1,20 @@
 {% extends 'layout.html' %}
 {% block links %}
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Custom.css') }}">
+    <script src="{{ url_for('static', filename='assets/js/helper.js') }}"></script>
 {% endblock %}
-
-{% block inline_style %}
-<style media="screen">
-  body {
-    background-color:rgba(38,82,31,0.35);
-  }
-.unselectable {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-</style>
-
-
-<script type="text/javascript">
-    /* Name: displaySubmit
-       Input/Output: Takes in nothing, outputs nothing
-       Purpose: Will 'invert' the display style of the submit button based on the state of a checkbox
-            ie. Either initial --> none or none --> initial
-     */
-    function displaySubmit(){
-        var box = document.getElementById('confirmBox');
-        var submit = document.getElementById('submit')
-        if (box.checked == true){
-            submit.style.display = "initial";
-        }
-        else{
-            submit.style.display = "none";
-        }
-    }
-    /* Name: selectRow
-       Input/Output: Input primary key associated with employee row
-       Purpose: Will invert the checked attribute of the checkbox input in the row, and also flip the rows
-            text color to display selection
-     */
-    function selectRow(pkey){
-        var row = document.getElementById(pkey);
-        var cell = document.getElementById(pkey + "U");
-
-        //Invert input tags checked attribute
-        cell.checked = !cell.checked;
-
-        //Change color to indicate selection
-        if(row.style.color != "red"){
-            row.style.color = "red";
-        }
-        else{
-            row.style.color = "white";
-        }
-
-    }
-</script>
-{% endblock %}
-
 
 {% block body %}
     <br>
     <br>
     <div class="table-responsive jumbotron text-center" style="background-color:#27404c; color:white;">
-        <h1 style="color:white;">Locations Details</h1>
+        <h1>Locations Details</h1>
         <br>
         <form method="post">
             <table class="table table-striped table-bordered table-hover">
-                <thead style="width:1058px;height:50px;padding:0px;">
-                    <tr style="padding:0px;">
+                <thead>
+                    <tr>
                         <th style="background-position:center;font-size:20px;">ID</th>
                         <th style="background-position:center;font-size:20px;">Name</th>
                         <th style="background-position:center;font-size:20px;">Address</th>
@@ -94,7 +39,7 @@
             <!-- Confirmation/submission -->
             <div class="form-group">
                 <label class="control-label">Are you sure?</label>
-                <input id="confirmBox" type="checkbox" onchange="displaySubmit()"/>
+                <input id="confirmBox" type="checkbox" onchange="displaySubmit(id, 'submit')"/>
             </div>
             <button id="submit" type="submit" class="btn btn-default" style="display:none;">Delete</button>
         </form>
