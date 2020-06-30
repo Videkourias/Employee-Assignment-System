@@ -1,4 +1,3 @@
-1. Allow selection of employees/locations for deletion by pressing row (instead of checkbox)
 3. export in file JS definitions to external file and reference file using Jinja and Flask
 3. View user should allow modification of user's/location's values (same for view location)
 4. Allow drag and drop for assignment of employees to locations

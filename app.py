@@ -239,7 +239,7 @@ def viewEmployees():
 @isLoggedAdmin
 def viewLocations():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("select * from locations")
+    cur.execute("select * from locations order by id asc")
 
     # Test if locations exist in DB, if not, exit prematurely
     if cur.rowcount > 0:

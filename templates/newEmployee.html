@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Login-Form-Clean.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Registration-Form-with-Photo.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.css') }}">
+    <script src="{{ url_for('static', filename='assets/js/helper.js') }}"></script>
 {% endblock %}
 {% block inline_style %}
 <style media="screen">
@@ -20,31 +21,19 @@
       margin: auto;
   }
 </style>
-
-<script type="application/javascript">
-    /* Name: newEmployee
-       Input/Output: Takes a string called value as input, value corresponds to the value of the option selected
-                from the selection dropdown on the form.
-       Purpose: Function called to display or hide elements based on what user type is being created
-                ie. Selecting a user type(value) of 1 will hide the assignedto field
-    */
-    function newEmployee(value){
-        if (value == 1){
-            document.getElementById("assignedto").style.display="none";
-        }
-        else{
-            document.getElementById("assignedto").style.display="block";
-        }
-    }
-</script>
-
 {% endblock %}
+
+
 {% block body %}
     <div class="jumbotron text-center hello" style="background-color:#27404c;color:white;">
         <div class="hello1">
             <form method="post" >
 
-                <div class="illustration"><i class="icon ion-ios-navigate" style="font-size:90px;margin:0px;padding:0px;"></i></div>
+                <!--<div class="illustration"><i class="icon ion-ios-navigate" style="font-size:90px;margin:0px;padding:0px;"></i></div>-->
+                <div class="illustration"><img src="static/assets/img/logo2.png" width="100" height="100"></div>
+
+                <br>
+                <br>
 
                 <!-- Name and email fields -->
                 <div class="form-group"><label class="control-label">Name</label><input class="form-control" type="text" name="name" style="height:35px;"></div>

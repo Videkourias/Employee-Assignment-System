@@ -5,9 +5,19 @@
 
 {% block inline_style %}
 <style media="screen">
-  body {
+  body{
     background-color:rgba(38,82,31,0.35);
   }
+  input[type="text"]{
+    background-color: #27404c;
+    color: inherit;
+    border: none;
+      opacity: 1;
+}
+  ::placeholder{
+    opacity: 1;
+}
+
 </style>
 {% endblock %}
 
@@ -28,15 +38,17 @@
                 </tr>
             </thead>
             <tbody>
+            <form>
                 {% for loc in locations %}
                   <tr>
                     <td>{{loc['id']}}</td>
-                    <td>{{loc['name']}}</td>
+                    <td><input type="text" placeholder="{{loc['name']}}"></td>
                     <td>{{loc['address']}}</td>
                     <td>{{loc['numemployees']}}</td>
                     <td>{{loc['lastupdate']}}</td>
                   </tr>
                 {% endfor %}
+            </form>
             </tbody>
         </table>
     </div>

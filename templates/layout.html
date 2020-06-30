@@ -6,21 +6,34 @@
     <title>Placement System</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/bootstrap/css/bootstrap-theme.min.css') }}">
+
+    <!-- Allows child templates to override with custom links/inline_style -->
     {% block links %}{% endblock %}
     {% block inline_style %}{% endblock %}
   </head>
 
   <body background="/static/assets/img/starsky.jpg" style="background-attachment: fixed;">
-    {% include 'includes/_navbar.html' %}
+
+  <!-- Includes navbar at top of page, 3 breaklines sperated -->
+  {% include 'includes/_navbar.html' %}
+
   <br>
   <br>
   <br>
+
   <div class="container">
+
+    <!-- Space for messages to appear -->
     {% include 'includes/_messages.html' %}
+
+    <!-- Rest of file appears below -->
     {% block body %}{% endblock %}
     <script src="{{ url_for('static', filename='assets/js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/bootstrap/js/bootstrap.min.js') }}"></script>
-    {% include 'includes/_navbar.html' %}
+
+
+      <!-- P SURE THIS IS USELESS -->
+      {% include 'includes/_navbar.html' %}
   </div>
   </body>
 
