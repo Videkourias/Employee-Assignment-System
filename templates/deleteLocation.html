@@ -23,7 +23,7 @@
                 </thead>
                 <tbody>
                     {% for loc in locations %}
-                      <tr class="unselectable" id="{{ loc['id'] }}" onclick="selectRow(id)">
+                      <tr class="unselectable" id="{{ loc['id'] }}" onclick="selectRow(id, 'red')">
                         <td>{{loc['id']}}</td>
                         <td>{{loc['name']}}</td>
                         <td>{{loc['address']}}</td>

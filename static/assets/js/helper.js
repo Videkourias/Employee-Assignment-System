@@ -28,9 +28,9 @@ function displaySubmit(boxID, submitID){
 }
 /*
 Will invert the checked attribute of the checkbox cell in the row, and also flip the rows
-text color (red|white)
+text color (col|white)
 */
-function selectRow(pkey){
+function selectRow(pkey, col){
     var row = document.getElementById(pkey);
     var cell = document.getElementById(pkey + "U");
 
@@ -38,8 +38,8 @@ function selectRow(pkey){
     cell.checked = !cell.checked;
 
     //Change color to indicate selection
-    if(row.style.color != "red"){
-        row.style.color = "red";
+    if(row.style.color != col){
+        row.style.color = col;
     }
     else{
         row.style.color = "white";

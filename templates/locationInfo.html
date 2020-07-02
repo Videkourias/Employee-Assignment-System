@@ -1,6 +1,8 @@
 {% extends 'layout.html' %}
 {% block links %}
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Custom.css') }}">
+    <script src="{{ url_for('static', filename='assets/js/helper.js') }}"></script>
 {% endblock %}
 
 
@@ -23,19 +25,19 @@
         </table>
         <!-- Table/Form for employees currently assigned to location -->
         <form method="post">
-            <table class="table table-bordered">
+            <table class="table table-bordered table-hover">
                 <thead>
                     <tr style="background-position:center;font-size:20px;">
                         <th>Name</th>
-                        <th >Email</th>
+                        <th>Email</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for emp in assigned %}
-                        <tr>
+                        <tr class="unselectable" id="{{ emp['email'] }}" onclick="selectRow(id, 'green')">
                             <td>{{emp['name']}}</td>
                             <td>{{emp['email']}}</td>
-                            <td><input type="checkbox" name="empRemove" value="{{ emp['email'] }}"/></td>
+                            <td hidden><input id="{{ emp['email'] }}U" type="checkbox" name="empRemove" value="{{ emp['email'] }}"/></td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -58,10 +60,10 @@
                 </thead>
                 <tbody>
                     {% for emp in unassigned %}
-                        <tr>
+                        <tr class="unselectable" id="{{ emp['email'] }}" onclick="selectRow(id, 'green')">
                             <td>{{emp['name']}}</td>
                             <td>{{emp['email']}}</td>
-                            <td><input type="checkbox" name="empAdd" value="{{ emp['email'] }}"/></td>
+                            <td hidden><input id="{{ emp['email'] }}U" type="checkbox" name="empAdd" value="{{ emp['email'] }}"/></td>
                         </tr>
                     {% endfor %}
                 </tbody>

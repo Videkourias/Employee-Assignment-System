@@ -22,7 +22,7 @@
                 </thead>
                 <tbody>
                     {% for emp in employees %}
-                      <tr class="unselectable" id="{{ emp['email'] }}" onclick="selectRow(id)" value=id>
+                      <tr class="unselectable" id="{{ emp['email'] }}" onclick="selectRow(id, 'red')">
                         <td>{{emp['name']}}</td>
                         <td>{{emp['email']}}</td>
                         <td>{{emp['assignedto']}}</td>
