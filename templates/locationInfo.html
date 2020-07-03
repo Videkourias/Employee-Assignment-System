@@ -10,19 +10,11 @@
     <br>
     <br>
     <div class="table-responsive jumbotron text-center" style="background-color:#27404c; color:white;">
-        <h1>{{ location['name'] }}</h1>
+        <h1>{{ location['name'] }} - {{ location['id'] }}</h1>
+        <h2>{{ location['address'] }}</h2>
+        <h3>Number of Employees: {{ location['numemployees'] }}</h3>
+
         <br>
-        <!-- Table containing location info -->
-        <table class="table">
-            <tbody>
-                <tr>
-                    <td>{{ location['id'] }}</td>
-                    <td>{{ location['name'] }}</td>
-                    <td>{{ location['address'] }}</td>
-                    <td>{{ location['numemployees'] }}</td>
-                </tr>
-            </tbody>
-        </table>
         <!-- Table/Form for employees currently assigned to location -->
         <form method="post">
             <table class="table table-bordered table-hover">

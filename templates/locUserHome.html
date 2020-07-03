@@ -6,18 +6,32 @@
     <br>
     <br>
 
-    <div>
-        <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
-            <h2 class="text-center">Welcome {{session['username']}}</h2>
+    <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
+        <h2 class="text-center">Welcome {{session['username']}}</h2>
 
-            <br>
-            <br>
+        <br>
+        <br>
 
-            <!-- Only executes block if user_details row was found -->
-            {% if valid %}
-                <h2>{{ location['name'] }} currently has: {{ location['numemployees'] }} employee(s)</h2>
-                <h2>Number of employees was last updated: {{ location['lastupdate'] }}</h2>
-            {% endif %}
+        <!-- Only executes block if user_details row was found -->
+        {% if valid %}
+            <h2>{{ location['name'] }} currently has: {{ location['numemployees'] }} employee(s)</h2>
+            <h2>Number of employees was last updated: {{ location['lastupdate'] }}</h2>
+        {% endif %}
+
+    </div>
+
+    <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
+        <h1>Employees</h1>
+        {% for emp in employees %}
+        <p>{{ emp['name'] }} -- {{ emp['email'] }} -- {{ emp['lastupdate'] }}</p>
+        <br>
+        {% endfor %}
+        <div class="row">
+            <div class="col">
+                <a href="{{ url_for('newRequest') }}">
+                    <button class="btn btn-default" type="button"><strong>Request Employees</strong></button>
+                </a>
+            </div>
         </div>
     </div>
 {% endblock %}

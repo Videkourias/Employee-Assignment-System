@@ -206,8 +206,10 @@ def locUserHome():
     cur.execute("select * from locations where email=%s", [username])
     if cur.rowcount > 0:
         row = cur.fetchone()
+        cur.execute("select * from employees where assignedTo = %s order by name asc", [row['id']])
+        rows = cur.fetchall()
         cur.close()
-        return render_template('locUserHome.html', valid=True, location=row)
+        return render_template('locUserHome.html', valid=True, location=row, employees=rows)
 
     # If location account does not exist, throw error
     cur.close()
@@ -264,6 +266,32 @@ def viewLocations():
 
     else:
         flash('No locations found', 'info')
+        return render_template('adminHome.html')
+
+
+# View Requests
+# Function redirects to page presenting list of all requests
+@app.route('/viewRequests')
+@isLoggedAdmin
+def viewRequests():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from requests")
+
+    # Test if requests exist in DB, if not, exit prematurely
+    if cur.rowcount > 0:
+        rows = cur.fetchall()
+
+        # Debugging, might flood log if left on when live
+        app.logger.info('Fetched requests')
+        for row in rows:
+            app.logger.info(row)
+
+        # Closing statements
+        cur.close()
+        return render_template('viewRequests.html', requests=rows)
+
+    else:
+        flash('No requests found', 'info')
         return render_template('adminHome.html')
 
 
@@ -406,7 +434,6 @@ def deleteLocation():
             return redirect(url_for('adminHome'))
 
 
-
 # FORMS BELOW ARE ONLY NECESSARY IF NEED TO VALIDATE INPUT
 
 # Form to verify/restrict new employee data
@@ -511,7 +538,7 @@ def newEmployee():
 
         # Check if email already in use
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute("select id, name from users where email=%s", [email])
+        cur.execute("select from users where email=%s", [email])
 
         if cur.rowcount > 0:
             flash('Email already in use', 'warning')
@@ -570,7 +597,8 @@ def newLocation():
         currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # Create user corresponding to the new location
-        cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",(email, sha256_crypt.hash('0000')))
+        cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",
+                    (email, sha256_crypt.hash('0000')))
         # Insert location
         cur.execute("insert into locations(address, name, email, lastupdate) values(%s, %s, %s, %s)",
                     (address, name, email, currentTime))
@@ -587,6 +615,47 @@ def newLocation():
         if request.method == 'POST':
             flash('Please fill all blanks', 'warning')
     return render_template('newLocation.html', form=form)
+
+
+# New Request
+# Allows location user to send new request for employees to admin
+@app.route('/newRequest', methods=['GET', 'POST'])
+@isLoggedLocUser
+def newRequest():
+    if request.method == 'POST':
+        # Get data from form
+        app.logger.info('In POST')
+
+        numEmployees = request.form.get('numEmployees')
+        date = request.form.get('date')
+
+        # Check number employees validity
+        if not numEmployees or int(numEmployees) < 1:
+            flash('Invalid number of employees specified', 'warning')
+            return render_template('newRequest.html')
+
+        # Check date validity
+        dateRequested = datetime.strptime(date, '%Y-%m-%d').date()
+        currentDate = datetime.now().date()
+
+        if not date or dateRequested < currentDate:
+            flash('Invalid date specified', 'warning')
+            return render_template('newRequest.html')
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        # Add request to DB request table
+        cur.execute("insert into requests(quantity, datereq, datesubmit) values(%s, %s, %s)",
+                    (numEmployees, dateRequested, currentDate))
+        conn.commit()
+
+        cur.close()
+        flash('Request has been submitted', 'success')
+        return redirect(url_for('locUserHome'))
+
+
+    else:
+        return render_template("newRequest.html")
 
 
 # Update Password
