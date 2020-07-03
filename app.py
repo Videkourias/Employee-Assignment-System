@@ -635,10 +635,14 @@ def newRequest():
             return render_template('newRequest.html')
 
         # Check date validity
-        dateRequested = datetime.strptime(date, '%Y-%m-%d').date()
-        currentDate = datetime.now().date()
+        if date:
+            dateRequested = datetime.strptime(date, '%Y-%m-%d').date()
+            currentDate = datetime.now().date()
 
-        if not date or dateRequested < currentDate:
+            if dateRequested < currentDate:
+                flash('Invalid date specified', 'warning')
+                return render_template('newRequest.html')
+        else:
             flash('Invalid date specified', 'warning')
             return render_template('newRequest.html')
 
