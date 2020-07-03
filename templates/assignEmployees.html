@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% block links %}
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/Custom.css') }}">
 {% endblock %}
 
 
@@ -22,13 +23,11 @@
             </thead>
             <tbody>
                 {% for loc in locations %}
-                    <tr>
+                    <tr class="unselectable" onclick="location.href='{{ url_for('locationInfo', id=loc['id']) }}'">
                         <td>{{loc['id']}}</td>
                         <td>{{loc['name']}}</td>
                         <td>{{loc['address']}}</td>
                         <td>{{loc['numemployees']}}</td>
-                        <!-- Link to page containing workers assigned to location -->
-                        <td><a href="{{ url_for('locationInfo', id=loc['id']) }}">Add/remove workers</a></td>
                     </tr>
                 {% endfor %}
             </tbody>
