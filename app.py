@@ -271,28 +271,82 @@ def viewLocations():
 
 # View Requests
 # Function redirects to page presenting list of all requests
-@app.route('/viewRequests')
+@app.route('/viewRequests', methods=['GET', 'POST'])
 @isLoggedAdmin
 def viewRequests():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("select * from requests")
 
-    # Test if requests exist in DB, if not, exit prematurely
-    if cur.rowcount > 0:
+    if request.method == 'POST':
+        app.logger.info("In POST")
+
+        close = 0
+        # When requests assign button is clicked, the quantity of employees requested are reassigned to the
+        # requester's location If quantity can not be reached, all unassigned employees are reassigned to the
+        # requester's location. Assignment order is based on employee name, sorted lexicographically
+        if request.form.get('assign'):
+            reqnum = request.form.get('assign')
+
+            # Fetch the info of the request from the DB
+            cur.execute("select quantity, id, name from requests where reqnum = %s", [reqnum])
+            if cur.rowcount < 1:
+                flash('Error fetching request info", "error')
+                return redirect(url_for('viewRequests'))
+            req = cur.fetchone()
+
+            # Get number of employees
+            cur.execute("select assignedto from employees where assignedto = 0")
+            numEmp = cur.rowcount
+
+            # Determine if requested number of employees greater than available number of employees
+            maxNum = numEmp if numEmp < req['quantity'] else req['quantity']
+
+            # Get maxNum number of users from unassigned pool
+            cur.execute("select email from employees where assignedto = 0 order by name asc")
+            employees = cur.fetchmany(maxNum)
+
+            # Reassign employees
+            for emp in employees:
+                cur.execute("update employees set assignedto = %s where email = %s", (req['id'], emp[0]))
+            cur.execute("update locations set numemployees = numemployees + %s where id = %s", (maxNum, req['id']))
+
+            flash("Reassigned {} employees to {}-{}".format(maxNum, req['id'], req['name']), "info")
+            conn.commit()
+
+            close = reqnum
+        # When the open or close buttons are clicked, the requests status is updated to true or false respectively
+        # Requests are automatically closed after pressing the assign button
+        if request.form.get('invert') or close:
+            # Determine request number
+            reqnum = close
+            if request.form.get('invert'):
+                reqnum = request.form.get('invert')
+
+            # Get the current status of request based on reqnum
+            cur.execute("select status from requests where reqnum = %s", [reqnum])
+            if cur.rowcount < 1:
+                flash('Error fetching request info", "error')
+                return redirect(url_for('viewRequests'))
+            req = cur.fetchone()
+
+            # Invert request value
+            cur.execute("update requests set status = %s where reqnum = %s", (not req['status'], reqnum))
+            conn.commit()
+
+        cur.close()
+        return redirect(url_for('viewRequests'))
+    else:
+        cur.execute("select * from requests where status = true")
         rows = cur.fetchall()
 
-        # Debugging, might flood log if left on when live
-        app.logger.info('Fetched requests')
-        for row in rows:
-            app.logger.info(row)
+        cur.execute("select * from requests where status = false")
+        orows = cur.fetchall()
 
-        # Closing statements
-        cur.close()
-        return render_template('viewRequests.html', requests=rows)
-
-    else:
-        flash('No requests found', 'info')
-        return render_template('adminHome.html')
+        if rows or orows:
+            cur.close()
+            return render_template('viewRequests.html', orequests=rows, crequests=orows)
+        else:
+            flash('No requests found', 'info')
+            return render_template('adminHome.html')
 
 
 # Assign Employees to Locations
@@ -634,7 +688,7 @@ def newRequest():
             flash('Invalid number of employees specified', 'warning')
             return render_template('newRequest.html')
 
-        # Check date validity
+        # Check date validity, date requested can't be before current date
         if date:
             dateRequested = datetime.strptime(date, '%Y-%m-%d').date()
             currentDate = datetime.now().date()
@@ -648,15 +702,22 @@ def newRequest():
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
+        # Get ID of location associated with user account
+        cur.execute("select id, name from locations where email = %s", [session['username']])
+        loc = cur.fetchone()
+
+        if not loc:
+            flash('Error fetching location information', 'error')
+            return render_template('newRequest.html')
+
         # Add request to DB request table
-        cur.execute("insert into requests(quantity, datereq, datesubmit) values(%s, %s, %s)",
-                    (numEmployees, dateRequested, currentDate))
+        cur.execute("insert into requests(quantity, datereq, datesubmit, name, id) values(%s, %s, %s, %s)",
+                    (numEmployees, dateRequested, currentDate, loc['name'], loc['id']))
         conn.commit()
 
         cur.close()
         flash('Request has been submitted', 'success')
         return redirect(url_for('locUserHome'))
-
 
     else:
         return render_template("newRequest.html")

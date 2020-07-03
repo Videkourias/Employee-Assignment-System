@@ -5,7 +5,7 @@
 - Limit password attempts
 - ENV file for table names, DB info
 
-
+- Switch PK of locations to email
 
 
 Q
