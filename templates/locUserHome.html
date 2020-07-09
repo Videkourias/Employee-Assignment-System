@@ -6,6 +6,7 @@
     <br>
     <br>
 
+    <!-- Basic location info -->
     <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
         <h2 class="text-center">Welcome {{session['username']}}</h2>
 
@@ -20,18 +21,42 @@
 
     </div>
 
+    <!-- Employees assigned -->
     <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
         <h1>Employees</h1>
         {% for emp in employees %}
         <p>{{ emp['name'] }} -- {{ emp['email'] }} -- {{ emp['lastupdate'] }}</p>
         <br>
         {% endfor %}
-        <div class="row">
-            <div class="col">
-                <a href="{{ url_for('newRequest') }}">
-                    <button class="btn btn-default" type="button"><strong>Request Employees</strong></button>
-                </a>
-            </div>
-        </div>
+    </div>
+
+    <!-- Active requests -->
+    <div class="jumbotron text-center" style="background-color:#27404c; color:white;">
+        <h1>Active Requests</h1>
+        <br>
+        <table id="requests" class="table table-borderless">
+            <thead class="unselectable">
+                <tr style="background-position:center;font-size:20px;">
+                    <th onclick="sortTable('requests', 0)">Requester</th>
+                    <th onclick="sortTable('requests', 1)">Quantity</th>
+                    <th onclick="sortTable('requests', 2)">Requested For</th>
+                    <th onclick="sortTable('requests', 3)">Date Requested</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                  <tr>
+                      <td>{{req['name']}}</td>
+                      <td>{{req['quantity']}}</td>
+                      <td>{{req['datereq']}}</td>
+                      <td>{{req['datesubmit']}}</td>
+                  </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <a href="{{ url_for('newRequest') }}">
+            <button class="btn btn-default" type="button"><strong>New Request</strong></button>
+        </a>
     </div>
 {% endblock %}

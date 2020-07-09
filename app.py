@@ -1,7 +1,8 @@
 # Import libraries
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from functools import wraps
-from wtforms import Form, StringField, validators, SelectField
+from wtforms import Form, StringField, validators, SelectField, PasswordField
+from wtforms.validators import InputRequired, EqualTo
 from passlib.hash import sha256_crypt
 from datetime import datetime
 import psycopg2
@@ -18,6 +19,11 @@ conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
 @app.route('/')
 def index():
     return redirect(url_for('login'))
+
+
+###########################################
+##### LOGGING AND VERIFICATION ############
+###########################################
 
 
 # Login
@@ -151,6 +157,10 @@ def logout():
     return redirect(url_for('login'))
 
 
+###########################################
+########## USER HOME PAGES ################
+###########################################
+
 # Employer Home
 @app.route('/adminHome')
 @isLoggedAdmin
@@ -205,16 +215,24 @@ def locUserHome():
     # Check that account has associated location entry (checking the user is not admin)
     cur.execute("select * from locations where email=%s", [username])
     if cur.rowcount > 0:
-        row = cur.fetchone()
-        cur.execute("select * from employees where assignedTo = %s order by name asc", [row['id']])
-        rows = cur.fetchall()
+        # Get users and requests associated with location
+        loc = cur.fetchone()
+        cur.execute("select * from employees where assignedTo = %s order by name asc", [loc['id']])
+        emps = cur.fetchall()
+        cur.execute("select * from requests where id = %s and status = true order by datesubmit asc", [loc['id']])
+        reqs = cur.fetchall()
         cur.close()
-        return render_template('locUserHome.html', valid=True, location=row, employees=rows)
+        return render_template('locUserHome.html', valid=True, location=loc, employees=emps, requests=reqs)
 
     # If location account does not exist, throw error
     cur.close()
     flash('Error fetching location information', "warning")
     return render_template('locUserHome.html', valid=False)
+
+
+###########################################
+########### DB TABLE VIEWS ################
+###########################################
 
 
 # View Employees
@@ -349,34 +367,16 @@ def viewRequests():
             return render_template('adminHome.html')
 
 
-# Assign Employees to Locations
-# Redirects to assignEmployees.html
-# Won't redirect if there are no locations
-@app.route('/assignEmployees')
-@isLoggedAdmin
-def assignEmployees():
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("select * from locations")
+###########################################
+########## ASSIGNMENT PAGES ###############
+###########################################
 
-    # Test if locations exist in DB, if not, exit prematurely
-    if cur.rowcount > 0:
-        rows = cur.fetchall()
-        cur.execute("select name, email, assignedto from employees where assignedto = 0")
-        urows = cur.fetchall()
 
-        # Logging
-        app.logger.info('Fetched locations and unassigned employees')
-        for row in rows:
-            app.logger.info(row['name'])
 
-        # Closing statements
-        cur.close()
-        return render_template('assignEmployees.html', locations=rows, employees=urows)
 
-    else:
-        flash('No locations found', 'info')
-        return render_template('adminHome.html')
-
+###########################################
+############ DELETE PAGES #################
+###########################################
 
 # Remove Employees from DB
 # Will remove employee from location assignment and drop their users and employees rows from the DB
@@ -488,81 +488,31 @@ def deleteLocation():
             return redirect(url_for('adminHome'))
 
 
-# FORMS BELOW ARE ONLY NECESSARY IF NEED TO VALIDATE INPUT
+###########################################
+######### NEW ENTRY PAGES/FORMS ###########
+###########################################
+
 
 # Form to verify/restrict new employee data
 class NewEmployeeForm(Form):
     email = StringField('email', [validators.Length(min=1, max=50)])
     name = StringField('name', [validators.Length(min=1, max=50)])
+    password = PasswordField('password', [InputRequired(), EqualTo('verify', message='Passwords must match')])
+    verify = PasswordField('password')
     assignedto = SelectField('assignedto', validate_choice=False)
     usertype = SelectField('usertype', choices=[('1', '1'), ('2', '2')])
 
 
 # Form to verify/restrict new location data
 class NewLocationForm(Form):
-    name = StringField('name', [validators.Length(min=6, max=50)])
+    # Location User Fields
     email = StringField('name', [validators.Length(min=6, max=50)])
+    password = PasswordField('password', [InputRequired(), EqualTo('verify', message='Passwords must match')])
+    verify = PasswordField('password')
+
+    # Location fields
     address = StringField('address', [validators.Length(min=6, max=50)])
-
-
-# Location Info
-# Function redirects to page detailing information on a specific location, as specified in the path
-# Also lists the employees assigned to the location
-@app.route('/locationInfo/<int:id>', methods=['GET', 'POST'])
-@isLoggedAdmin
-def locationInfo(id):
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    # Submitting employee information to be assigned
-    if request.method == 'POST':
-
-        app.logger.info('In POST')
-
-        # Form provides email corresponding to name in dropdown, will be "pass" if no employee selected
-        emailAdd = request.form.getlist('empAdd')
-        emailRemove = request.form.getlist('empRemove')
-
-        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        # Removes selected employees from location, lowers num employees column for each employee removed
-        if emailRemove:
-            for email in emailRemove:
-                cur.execute("update employees set assignedto = 0, lastupdate = %s where email = %s",
-                            (currentTime, email))
-                cur.execute("update locations set numemployees = numemployees - 1, lastupdate = %s where id = %s",
-                            (currentTime, id))
-                conn.commit()
-
-        # Assign employees to new location, increase num employees column for each employee assigned
-        if emailAdd:
-            for email in emailAdd:
-                cur.execute("update employees set assignedto = %s, lastupdate = %s where email = %s",
-                            (id, currentTime, email))
-                cur.execute("update locations set numemployees = numemployees + 1, lastupdate = %s where id = %s",
-                            (currentTime, id))
-                conn.commit()
-
-        # Will reach at end of POST request, redirects to URL as GET request
-        return redirect(url_for('locationInfo', id=id))
-
-    # Get request
-    else:
-        # Grabs location info and employee info (assigned to this location and unassigned)
-        cur.execute("select * from locations where id = %s", [id])
-        result = cur.rowcount
-        row = cur.fetchone()
-        cur.execute("select * from employees where assignedto = %s", [id])
-        prows = cur.fetchall()
-        cur.execute("select * from employees where assignedto = 0")
-        urows = cur.fetchall()
-        cur.close()
-
-        # locationInfo.html depends on the location existing in the DB
-        if result > 0:
-            return render_template('locationInfo.html', location=row, assigned=prows, unassigned=urows)
-        else:
-            # If the location doesn't exist, user sent back to assignEmployees.html
-            return redirect(url_for('assignEmployees'))
+    name = StringField('name', [validators.Length(min=6, max=50)])
 
 
 # Add Employee
@@ -586,6 +536,7 @@ def newEmployee():
         # Get info from form
         name = form.name.data
         email = form.email.data
+        password = form.password.data
         assignedto = form.assignedto.data
         usertype = form.usertype.data
         currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -600,7 +551,7 @@ def newEmployee():
 
         # Add new user to DB for logging info
         cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
-                    (email, sha256_crypt.hash('0000'), usertype))
+                    (email, sha256_crypt.hash(password), usertype))
 
         # Add new user to DB for placement info, only if user is an employee
         if usertype == '2':
@@ -619,7 +570,7 @@ def newEmployee():
         return redirect(url_for('adminHome'))
     else:
         if request.method == 'POST':
-            flash('Please fill all blanks', 'warning')
+            flash('Form validation error', 'warning')
     return render_template('newEmployee.html', form=form, locations=rows)
 
 
@@ -631,6 +582,7 @@ def newEmployee():
 def newLocation():
     form = NewLocationForm(request.form)
 
+    print(form.validate())
     if request.method == 'POST' and form.validate():
         # Get data from form
         app.logger.info('In POST')
@@ -638,6 +590,7 @@ def newLocation():
         name = form.name.data
         address = form.address.data
         email = form.email.data
+        password = form.password.data
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -652,7 +605,7 @@ def newLocation():
 
         # Create user corresponding to the new location
         cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",
-                    (email, sha256_crypt.hash('0000')))
+                    (email, sha256_crypt.hash(password)))
         # Insert location
         cur.execute("insert into locations(address, name, email, lastupdate) values(%s, %s, %s, %s)",
                     (address, name, email, currentTime))
@@ -721,6 +674,100 @@ def newRequest():
 
     else:
         return render_template("newRequest.html")
+
+
+###########################################
+################# EXTRA ###################
+###########################################
+
+
+# Assign Employees to Locations
+# Redirects to assignEmployees.html
+# Won't redirect if there are no locations
+@app.route('/assignEmployees')
+@isLoggedAdmin
+def assignEmployees():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from locations order by ID asc")
+
+    # Test if locations exist in DB, if not, exit prematurely
+    if cur.rowcount > 0:
+        rows = cur.fetchall()
+        cur.execute("select name, email, assignedto from employees where assignedto = 0")
+        urows = cur.fetchall()
+
+        # Logging
+        app.logger.info('Fetched locations and unassigned employees')
+        for row in rows:
+            app.logger.info(row['name'])
+
+        # Closing statements
+        cur.close()
+        return render_template('assignEmployees.html', locations=rows, employees=urows)
+
+    else:
+        flash('No locations found', 'info')
+        return render_template('adminHome.html')
+
+
+# Location Info
+# Function redirects to page detailing information on a specific location, as specified in the path
+# Also lists the employees assigned to the location
+@app.route('/locationInfo/<int:id>', methods=['GET', 'POST'])
+@isLoggedAdmin
+def locationInfo(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    # Submitting employee information to be assigned
+    if request.method == 'POST':
+
+        app.logger.info('In POST')
+
+        # Form provides email corresponding to name in dropdown, will be "pass" if no employee selected
+        emailAdd = request.form.getlist('empAdd')
+        emailRemove = request.form.getlist('empRemove')
+
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Removes selected employees from location, lowers num employees column for each employee removed
+        if emailRemove:
+            for email in emailRemove:
+                cur.execute("update employees set assignedto = 0, lastupdate = %s where email = %s",
+                            (currentTime, email))
+                cur.execute("update locations set numemployees = numemployees - 1, lastupdate = %s where id = %s",
+                            (currentTime, id))
+                conn.commit()
+
+        # Assign employees to new location, increase num employees column for each employee assigned
+        if emailAdd:
+            for email in emailAdd:
+                cur.execute("update employees set assignedto = %s, lastupdate = %s where email = %s",
+                            (id, currentTime, email))
+                cur.execute("update locations set numemployees = numemployees + 1, lastupdate = %s where id = %s",
+                            (currentTime, id))
+                conn.commit()
+
+        # Will reach at end of POST request, redirects to URL as GET request
+        return redirect(url_for('locationInfo', id=id))
+
+    # Get request
+    else:
+        # Grabs location info and employee info (assigned to this location and unassigned)
+        cur.execute("select * from locations where id = %s", [id])
+        result = cur.rowcount
+        row = cur.fetchone()
+        cur.execute("select * from employees where assignedto = %s", [id])
+        prows = cur.fetchall()
+        cur.execute("select * from employees where assignedto = 0")
+        urows = cur.fetchall()
+        cur.close()
+
+        # locationInfo.html depends on the location existing in the DB
+        if result > 0:
+            return render_template('locationInfo.html', location=row, assigned=prows, unassigned=urows)
+        else:
+            # If the location doesn't exist, user sent back to assignEmployees.html
+            return redirect(url_for('assignEmployees'))
 
 
 # Update Password
