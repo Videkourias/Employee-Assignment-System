@@ -1,5 +1,7 @@
 # Import libraries
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from functools import wraps
 from wtforms import Form, StringField, validators, SelectField, PasswordField
 from wtforms.validators import InputRequired, EqualTo
@@ -14,8 +16,10 @@ app = Flask(__name__)
 # Initialize PostgreSQL
 conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
 
+# Initialize Flask Limiter
+limiter = Limiter(app, key_func=get_remote_address)
 
-# Redirects to login page
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -32,14 +36,8 @@ def index():
 # If account non-existent, password mismatch, or fields empty, will redirect to self (login.html)
 # Currently no limit on password entry attempts
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("1/second; 30/hour")
 def login():
-    """
-    name: login
-    input/output: Accessed through "/login" path by GET or POST. Will direct user to adminHome if account
-        entered is usertype 1. Otherwise, will redirect to employeeHome. If account non-existent, password mismatch,
-        or fields empty, will redirect to self (login.html)
-
-    """
     if request.method == 'POST':
         # Pull username password info supplied by user
         usernameCandidate = request.form['email']
@@ -370,8 +368,6 @@ def viewRequests():
 ###########################################
 ########## ASSIGNMENT PAGES ###############
 ###########################################
-
-
 
 
 ###########################################

@@ -6,7 +6,7 @@
 - ENV file for table names, DB info
 
 - Switch PK of locations to email
-- Display informative error messages on input forms, not just "Fill all blanks"
+- Display informative error messages on input forms, not just "Fill all blanks" (ie. password mismatch)
 - Add back button to navbar
 - Make all tables sortable using column headers
 
