@@ -706,6 +706,49 @@ def assignEmployees():
         return render_template('adminHome.html')
 
 
+# Employee Info
+# Function redirects to page allowing admin to modify an employee's values
+@app.route('/employeeInfo/<string:email>', methods=['GET', 'POST'])
+@isLoggedAdmin
+def employeeInfo(email):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from employees where email = %s", [email])
+    emp = cur.fetchone()
+
+    # Submitting employee information to be assigned
+    if request.method == 'POST':
+
+        app.logger.info('In POST')
+
+        # Get updated data from form
+        email = request.form['email']
+        name = request.form['name']
+
+        email = emp['email'] if email is None else email
+        name = emp['name'] if email is None else name
+        print(email, name)
+
+        # Verify updated data is valid
+
+        # Insert data into DB
+
+        # Will reach at end of POST request, redirects to URL as GET request
+        cur.close()
+        return redirect(url_for('viewEmployees'))
+
+    # Get request
+    else:
+        # Grabs info of selected employee
+        if cur.rowcount > 0:
+            cur.close()
+            return render_template('employeeInfo.html', employee=emp)
+        else:
+            cur.close()
+            # If the employee doesn't exist, user sent back to viewEmployees.html
+            flash("Error getting employee info", "error")
+            return render_template('viewEmployees.html')
+
+
 # Location Info
 # Function redirects to page detailing information on a specific location, as specified in the path
 # Also lists the employees assigned to the location

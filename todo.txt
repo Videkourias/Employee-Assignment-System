@@ -1,5 +1,6 @@
 - View user should allow modification of user's/location's values (same for view location)
 - On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
+- Fix table sorting
 
 
 - Switch PK of locations to email
@@ -8,7 +9,7 @@
 
 
 Q
-- Do users need passwords? Simply enter email and get placement? or send placement directly to email?
+- Do employees need passwords? Simply enter email and get placement? or send placement directly to email?
 - Do request objects have default attributes you can set? Should I worry about manual POST requests breaking the app?
     Can I circumvent them by defining what to do if improper information sent with POST request?
 - For assignment operations including multiple employees, should I commit every time?
