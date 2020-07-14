@@ -1,13 +1,10 @@
 - View user should allow modification of user's/location's values (same for view location)
-- Allow drag and drop for assignment of employees to locations
 - On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
 
-- ENV file for table names, DB info
 
 - Switch PK of locations to email
 - Display informative error messages on input forms, not just "Fill all blanks" (ie. password mismatch)
 - Add back button to navbar
-- Make all tables sortable using column headers
 
 
 Q
