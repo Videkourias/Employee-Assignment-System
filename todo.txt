@@ -2,7 +2,6 @@
 - Allow drag and drop for assignment of employees to locations
 - On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
 
-- Limit password attempts
 - ENV file for table names, DB info
 
 - Switch PK of locations to email
