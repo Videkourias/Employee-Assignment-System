@@ -21,22 +21,20 @@ def employeeData(num):
 
     for i in range(num):
         name = names.get_full_name()
-        email = names.get_last_name().lower() + "@gmail.com"
+        lname = name.split(' ')[1]
+        email = lname.lower() + "@gmail.com"
         assignedto = ids[rm.randrange(cap)][0]
 
         # Add to users table first, to satisfy foreign key constraint
-        try:
-            cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
-                        (email, sha256_crypt.hash('0000'), 2))
+        cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
+                    (email, sha256_crypt.hash('0000'), 2))
 
-            cur.execute('insert into employees values(%s, %s, %s, %s)',
-                        (email, name, assignedto, currentTime))
+        cur.execute('insert into employees values(%s, %s, %s, %s)',
+                    (email, name, assignedto, currentTime))
 
-            if assignedto != 0:
-                cur.execute("update locations set numemployees = numemployees + 1 where id = %s", [assignedto])
-            print(name, "--", email, "--", assignedto, "--", currentTime)
-        except:
-            print("Error adding row")
+        if assignedto != 0:
+            cur.execute("update locations set numemployees = numemployees + 1 where id = %s", [assignedto])
+        print(name, "--", email, "--", assignedto, "--", currentTime)
 
     conn.commit()
     cur.close()
@@ -91,7 +89,7 @@ def locationData(num):
 def addRoot():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)", ("root@admin.com", "root"))
+    cur.execute("insert into users(email, password, usertype) values(%s, %s, 1)", ("root@admin.com", sha256_crypt.hash('root')))
     conn.commit()
 
     cur.close()
@@ -112,7 +110,8 @@ def clearDB():
 
 
 if __name__ == "__main__":
-    clearDB()
+    #pass
+    #clearDB()
     addRoot()
-    locationData(18)
-    employeeData(50)
+    #locationData(18)
+    #employeeData(50)
