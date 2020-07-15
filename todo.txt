@@ -3,8 +3,8 @@
 - Switch PK of locations to email
 - Display informative error messages on input forms, not just "Fill all blanks" (ie. password mismatch)
 
-- Captcha?
-
+- Captcha
+- Add session lifetime https://stackoverflow.com/questions/11783025/is-there-an-easy-way-to-make-sessions-timeout-in-flask
 
 Q
 - Do employees need passwords? Simply enter email and get placement? or send placement directly to email?
