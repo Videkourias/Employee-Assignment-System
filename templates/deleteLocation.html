@@ -29,7 +29,8 @@
                         <td>{{loc['address']}}</td>
                         <td>{{loc['numemployees']}}</td>
                         <td hidden>
-                            <input id="{{ loc['id'] }}U" type="checkbox" name="locDel" value="{{ loc['id'] }}"/>
+                            <input id="{{ loc['id'] }}U" type="checkbox" name="locDel"
+                                   value="{{ loc['id'] }}" autocomplete="off"/>
                         </td>
                       </tr>
                     {% endfor %}
@@ -39,7 +40,7 @@
             <!-- Confirmation/submission -->
             <div class="form-group">
                 <label class="control-label">Are you sure?</label>
-                <input id="confirmBox" type="checkbox" onchange="displaySubmit(id, 'submit')"/>
+                <input id="confirmBox" type="checkbox" onchange="displaySubmit(id, 'submit')" autocomplete="off"/>
             </div>
             <button id="submit" type="submit" class="btn btn-default" style="display:none;">Delete</button>
         </form>

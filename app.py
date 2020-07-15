@@ -406,7 +406,7 @@ def deleteEmployee():
                     cur.execute("update locations set numemployees = numemployees - 1 where id= %s",
                                 [row['assignedto']])
 
-                cur.execute("delete from employees where email = %s", [email])
+                # Query will cascade and delete employees entry as well
                 cur.execute("delete from users where email = %s", [email])
                 conn.commit()
                 numDel += 1
@@ -459,7 +459,7 @@ def deleteLocation():
 
                 cur.execute("update employees set assignedto = 0 where assignedto = %s", [id])
 
-                cur.execute("delete from locations where id = %s", [id])
+                # Query will cascade and delete locations entry as well
                 cur.execute("delete from users where email = %s", [email])
                 conn.commit()
                 numDel += 1

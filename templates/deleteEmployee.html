@@ -27,7 +27,8 @@
                         <td>{{emp['email']}}</td>
                         <td>{{emp['assignedto']}}</td>
                         <td hidden>
-                            <input id="{{ emp['email'] }}U" name="empDel" type="checkbox" value="{{ emp['email'] }}"/>
+                            <input id="{{ emp['email'] }}U" name="empDel" type="checkbox"
+                                   value="{{ emp['email'] }}" autocomplete="off"/>
                         </td>
                       </tr>
                     {% endfor %}
@@ -37,7 +38,7 @@
             <!-- Confirmation/submission -->
             <div class="form-group">
                 <label class="control-label">Are you sure?</label>
-                <input id="confirmBox" type="checkbox" onchange="displaySubmit(id, 'submit')"/>
+                <input id="confirmBox" type="checkbox" onchange="displaySubmit(id, 'submit')" autocomplete="off"/>
             </div>
             <button id="submit" type="submit" class="btn btn-default" style="display:none;">Delete</button>
         </form>
