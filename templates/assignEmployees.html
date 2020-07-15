@@ -24,7 +24,7 @@
             </thead>
             <tbody>
                 {% for loc in locations %}
-                    <tr class="unselectable" onclick="location.href='{{ url_for('locationInfo', id=loc['id']) }}'">
+                    <tr class="unselectable" onclick="location.href='{{ url_for('locationEmployees', id=loc['id']) }}'">
                         <td>{{loc['id']}}</td>
                         <td>{{loc['name']}}</td>
                         <td>{{loc['address']}}</td>

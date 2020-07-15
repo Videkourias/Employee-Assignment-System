@@ -247,8 +247,8 @@ def viewEmployees():
 
         # Debugging, might flood log if left on when live
         app.logger.info('Fetched employees')
-        for row in rows:
-            app.logger.info(row['email'])
+        #for row in rows:
+        #    app.logger.info(row['email'])
 
         # Closing statements
         cur.close()
@@ -678,8 +678,8 @@ def newRequest():
 
 
 # Assign Employees to Locations
-# Redirects to assignEmployees.html
-# Won't redirect if there are no locations
+# Redirects to assignEmployees.html, Won't redirect if there are no locations
+# Allows user to choose a location to edit the assigned employees of
 @app.route('/assignEmployees')
 @isLoggedAdmin
 def assignEmployees():
@@ -705,56 +705,12 @@ def assignEmployees():
         flash('No locations found', 'info')
         return render_template('adminHome.html')
 
-
-# Employee Info
-# Function redirects to page allowing admin to modify an employee's values
-@app.route('/employeeInfo/<string:email>', methods=['GET', 'POST'])
-@isLoggedAdmin
-def employeeInfo(email):
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("select * from employees where email = %s", [email])
-    emp = cur.fetchone()
-
-    # Submitting employee information to be assigned
-    if request.method == 'POST':
-
-        app.logger.info('In POST')
-
-        # Get updated data from form
-        email = request.form['email']
-        name = request.form['name']
-
-        email = emp['email'] if email is None else email
-        name = emp['name'] if email is None else name
-        print(email, name)
-
-        # Verify updated data is valid
-
-        # Insert data into DB
-
-        # Will reach at end of POST request, redirects to URL as GET request
-        cur.close()
-        return redirect(url_for('viewEmployees'))
-
-    # Get request
-    else:
-        # Grabs info of selected employee
-        if cur.rowcount > 0:
-            cur.close()
-            return render_template('employeeInfo.html', employee=emp)
-        else:
-            cur.close()
-            # If the employee doesn't exist, user sent back to viewEmployees.html
-            flash("Error getting employee info", "error")
-            return render_template('viewEmployees.html')
-
-
-# Location Info
+# Location Employees
 # Function redirects to page detailing information on a specific location, as specified in the path
 # Also lists the employees assigned to the location
-@app.route('/locationInfo/<int:id>', methods=['GET', 'POST'])
+@app.route('/locationEmployees/<int:id>', methods=['GET', 'POST'])
 @isLoggedAdmin
-def locationInfo(id):
+def locationEmployees(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Submitting employee information to be assigned
@@ -787,7 +743,7 @@ def locationInfo(id):
                 conn.commit()
 
         # Will reach at end of POST request, redirects to URL as GET request
-        return redirect(url_for('locationInfo', id=id))
+        return redirect(url_for('locationEmployees', id=id))
 
     # Get request
     else:
@@ -801,12 +757,126 @@ def locationInfo(id):
         urows = cur.fetchall()
         cur.close()
 
-        # locationInfo.html depends on the location existing in the DB
+        # locationEmployees.html depends on the location existing in the DB
         if result > 0:
-            return render_template('locationInfo.html', location=row, assigned=prows, unassigned=urows)
+            return render_template('locationEmployees.html', location=row, assigned=prows, unassigned=urows)
         else:
             # If the location doesn't exist, user sent back to assignEmployees.html
             return redirect(url_for('assignEmployees'))
+
+
+# Employee Info
+# Function redirects to page allowing admin to modify an employee's values
+@app.route('/employeeInfo/<string:email>', methods=['GET', 'POST'])
+@isLoggedAdmin
+def employeeInfo(email):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from employees where email = %s", [email])
+    emp = cur.fetchone()
+
+    # Submitting employee information to be assigned
+    if request.method == 'POST':
+
+        app.logger.info('In POST')
+
+        # Get updated data from form
+        email = request.form['email']
+        name = request.form['name']
+
+        # Verify updated data is valid
+        if email or name:
+            if email:
+                # Verify new email is not already in use
+                cur.execute("select email from employees where email = %s", [email])
+                if cur.rowcount > 0:
+                    flash('Email already in use', 'warning')
+                    return render_template('employeeInfo.html', employee=emp)
+            else:
+                email = emp['email']
+
+            if not name:
+                name = emp['name']
+
+            # Update tables (users table will cascade email change to employees table)
+            cur.execute("update users set email = %s where email = %s", (email, emp['email']))
+            cur.execute("update employees set name = %s where email = %s", (name, email))
+
+            # Apply changes
+            conn.commit()
+
+        # Will reach at end of POST request, redirects to URL as GET request
+        cur.close()
+        return redirect(url_for('viewEmployees'))
+
+    # Get request
+    else:
+        # Grabs info of selected employee
+        if cur.rowcount > 0:
+            cur.close()
+            return render_template('employeeInfo.html', employee=emp)
+        else:
+            cur.close()
+            # If the employee doesn't exist, user sent back to viewEmployees.html
+            flash("Error getting employee info", "error")
+            return render_template('viewEmployees.html')
+
+
+# Location Info
+# Function redirects to page detailing information on a specific location, as specified in the path
+# Also lists the employees assigned to the location
+@app.route('/locationInfo/<int:id>', methods=['GET', 'POST'])
+@isLoggedAdmin
+def locationInfo(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("select * from locations where id = %s", [id])
+    loc = cur.fetchone()
+
+    # Submitting employee information to be assigned
+    if request.method == 'POST':
+
+        app.logger.info('In POST')
+
+        # Get updated data from form
+        email = request.form['email']
+        name = request.form['name']
+        address = request.form['address']
+
+        # Verify updated data is valid
+        if email or name or address:
+            if email:
+                # Verify new email is not already in use
+                cur.execute("select email from locations where email = %s", [email])
+                if cur.rowcount > 0:
+                    flash('Email already in use', 'warning')
+                    return render_template('locationInfo.html', location=loc)
+            else:
+                email = loc['email']
+            if not name:
+                name = loc['name']
+            if not address:
+                address = loc['address']
+
+            cur.execute("update users set email = %s where email = %s", (email, loc['email']))
+            cur.execute("update locations set name = %s, address = %s where email = %s", (name, address, email))
+
+            conn.commit()
+
+        # Will reach at end of POST request, redirects to URL as GET request
+        cur.close()
+        return redirect(url_for('viewLocations'))
+
+    # Get request
+    else:
+        # Grabs info of selected location
+        if cur.rowcount > 0:
+            cur.close()
+            return render_template('locationInfo.html', location=loc)
+        else:
+            cur.close()
+            # If the location doesn't exist, user sent back to viewLocations.html
+            flash("Error getting location info", "error")
+            return render_template('viewLocations.html')
+
 
 
 # Update Password

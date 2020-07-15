@@ -1,4 +1,3 @@
-- View user should allow modification of user's/location's values (same for view location)
 - On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
 - Fix table sorting
 
