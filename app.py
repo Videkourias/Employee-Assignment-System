@@ -247,7 +247,7 @@ def viewEmployees():
 
         # Debugging, might flood log if left on when live
         app.logger.info('Fetched employees')
-        #for row in rows:
+        # for row in rows:
         #    app.logger.info(row['email'])
 
         # Closing statements
@@ -705,6 +705,7 @@ def assignEmployees():
         flash('No locations found', 'info')
         return render_template('adminHome.html')
 
+
 # Location Employees
 # Function redirects to page detailing information on a specific location, as specified in the path
 # Also lists the employees assigned to the location
@@ -801,10 +802,8 @@ def employeeInfo(email):
             cur.execute("update users set email = %s where email = %s", (email, emp['email']))
             cur.execute("update employees set name = %s where email = %s", (name, email))
 
-            # Apply changes
             conn.commit()
 
-        # Will reach at end of POST request, redirects to URL as GET request
         cur.close()
         return redirect(url_for('viewEmployees'))
 
@@ -856,12 +855,12 @@ def locationInfo(id):
             if not address:
                 address = loc['address']
 
+            # Update tables (users table will cascade email change to locations table)
             cur.execute("update users set email = %s where email = %s", (email, loc['email']))
             cur.execute("update locations set name = %s, address = %s where email = %s", (name, address, email))
 
             conn.commit()
 
-        # Will reach at end of POST request, redirects to URL as GET request
         cur.close()
         return redirect(url_for('viewLocations'))
 
@@ -876,7 +875,6 @@ def locationInfo(id):
             # If the location doesn't exist, user sent back to viewLocations.html
             flash("Error getting location info", "error")
             return render_template('viewLocations.html')
-
 
 
 # Update Password

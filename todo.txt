@@ -1,5 +1,4 @@
 - On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
-- Fix table sorting
 
 
 - Switch PK of locations to email

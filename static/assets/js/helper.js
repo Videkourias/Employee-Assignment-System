@@ -51,7 +51,7 @@ function selectRow(pkey, col){
 /*
 Will sort the passed table by column n, on click of column n. Subsequent clicks will change sort order
  */
-function sortTable(tablename, n) {
+function sortTable(tablename, n, num=false) {
   var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
   table = document.getElementById(tablename);
   switching = true;
@@ -75,17 +75,36 @@ function sortTable(tablename, n) {
       /* Check if the two rows should switch place,
       based on the direction, asc or desc: */
       if (dir == "asc") {
-        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-          // If so, mark as a switch and break the loop:
-          shouldSwitch = true;
-          break;
-        }
-      } else if (dir == "desc") {
-        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-          // If so, mark as a switch and break the loop:
-          shouldSwitch = true;
-          break;
-        }
+          if(num){
+            if (Number(x.innerHTML) > Number(y.innerHTML)) {
+              // If so, mark as a switch and break the loop:
+              shouldSwitch = true;
+              break;
+            }
+          }
+          else{
+              if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              // If so, mark as a switch and break the loop:
+              shouldSwitch = true;
+              break;
+            }
+          }
+      }
+      else if (dir == "desc") {
+          if(num){
+            if (Number(x.innerHTML) < Number(y.innerHTML)) {
+              // If so, mark as a switch and break the loop:
+              shouldSwitch = true;
+              break;
+            }
+          }
+          else{
+              if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+              // If so, mark as a switch and break the loop:
+              shouldSwitch = true;
+              break;
+            }
+          }
       }
     }
     if (shouldSwitch) {
