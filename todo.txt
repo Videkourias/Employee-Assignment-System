@@ -1,11 +1,11 @@
-- On employee assignment page, prompt user to submit before they leave if changes are made (depends on 4)
-- Logout on application window close
+- Logout after certain amount of time
 
 - Switch PK of locations to email
 - Display informative error messages on input forms, not just "Fill all blanks" (ie. password mismatch)
-- Add back button to navbar
 
-Fixe
+- Captcha?
+
+
 Q
 - Do employees need passwords? Simply enter email and get placement? or send placement directly to email?
 - Do request objects have default attributes you can set? Should I worry about manual POST requests breaking the app?
@@ -13,3 +13,4 @@ Q
 - For assignment operations including multiple employees, should I commit every time?
 - Better to have relocation operations all in one button? or individual assign/remove?
 - Create account from login page?
+- If user logged in and tries to log in again, allow them?

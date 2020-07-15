@@ -9,6 +9,7 @@ from passlib.hash import sha256_crypt
 from datetime import datetime
 import psycopg2
 import psycopg2.extras
+import os
 
 # Flask instance
 app = Flask(__name__)
@@ -922,7 +923,7 @@ def updatePassword():
 
 
 if __name__ == '__main__':
-    app.secret_key = 'xb8x04xb0x11a$[k;fxc3x1bxafx06xddU'
+    app.secret_key = os.urandom(12)
     app.debug = True
     app.run()
     conn.close()
