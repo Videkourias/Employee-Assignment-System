@@ -1,7 +1,6 @@
 import os
 import psycopg2
 import psycopg2.extensions
-import app
 from gendata import gendata
 from psycopg2.extensions import AsIs
 from dotenv import load_dotenv
@@ -22,7 +21,6 @@ def main():
 
     print('\nGoing to create:')
     print('Database Name: {}\nUser: {}\nPassword: {}\n'.format(DBNAME, DBUSER, DBPASS))
-
 
     # Create new user
     conn = psycopg2.connect(dbname=DBDFNAME, user=DBDFUSER, password=DBDFPASS)
@@ -70,7 +68,6 @@ def main():
     except Exception as e:
         print("Error in creation of schema:", e)
 
-
     # Populate DB
     print("Populating {}...".format(DBNAME))
     gendata.populate(os.getenv('EMPLOYEES'), os.getenv('LOCATIONS'))
@@ -78,8 +75,7 @@ def main():
     cur.close()
     conn.close()
 
-    print("Setup Complete... Launching application")
-    app.main()
+    print("Setup Complete. Can now launch app.py")
 
 
 if __name__ == '__main__':

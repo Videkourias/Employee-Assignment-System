@@ -587,7 +587,6 @@ def newEmployee():
 def newLocation():
     form = NewLocationForm(request.form)
 
-    print(form.validate())
     if request.method == 'POST' and form.validate():
         # Get data from form
         app.logger.info('In POST')
@@ -932,7 +931,7 @@ def updatePassword():
 
 def main():
     app.secret_key = os.urandom(12)
-    app.debug = True
+    app.debug = False
     app.run()
 
 if __name__ == '__main__':

@@ -16,10 +16,9 @@ DBNAME = os.getenv('DBNAME')
 DBUSER = os.getenv('DBUSER')
 DBPASS = os.getenv('DBPASS')
 
-conn = psycopg2.connect(dbname=DBNAME, user=DBUSER, password=DBPASS)
 
 # Fills employees table with random data, satisfies foreign key constraint
-def employeeData(num):
+def employeeData(num, conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Get valid assignedto values
@@ -32,7 +31,6 @@ def employeeData(num):
 
     for i in range(num):
         name = names.get_full_name()
-        #lname = name.split(' ')[1]
         email = ''.join(rm.choice(string.ascii_letters) for x in range(10)).lower() + "@gmail.com"
         assignedto = ids[rm.randrange(cap)][0]
 
@@ -56,7 +54,7 @@ def employeeData(num):
 
 
 # Fills locations table with random data
-def locationData(num):
+def locationData(num, conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # Read address data from JSON files
@@ -96,24 +94,25 @@ def locationData(num):
         # Insert location
         cur.execute("insert into locations(address, name, email, lastupdate) values(%s, %s, %s, %s)",
                     (address, name, email, currentTime))
-        #print(name, "--", email, "--", currentTime)
-
+        # print(name, "--", email, "--", currentTime)
 
     conn.commit()
     cur.close()
 
 
 # Method to create the root account, if it was deleted
-def addRoot():
+def addRoot(conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    cur.execute("insert into users(email, password, usertype) values(%s, %s, 1)", ("root@admin.com", sha256_crypt.hash('root')))
-    conn.commit()
+    cur.execute("insert into users(email, password, usertype) values(%s, %s, 1)",
+                ("root@admin.com", sha256_crypt.hash('root')))
 
+    conn.commit()
     cur.close()
 
+
 # Clear DB tables and reset sequences
-def clearDB():
+def clearDB(conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cur.execute("delete from requests")
@@ -129,17 +128,19 @@ def clearDB():
 
 # Customizable Populate Option
 def populate(numEmp, numLoc):
-    clearDB()
-    addRoot()
-    locationData(int(numEmp))
-    employeeData(int(numLoc))
+    conn = psycopg2.connect(dbname=DBNAME, user=DBUSER, password=DBPASS)
+    clearDB(conn)
+    addRoot(conn)
+    locationData(int(numEmp), conn)
+    employeeData(int(numLoc), conn)
     conn.close()
+
 
 if __name__ == "__main__":
     pass
-    #conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
-    #clearDB(conn)
-    #addRoot(conn)
-    #locationData(18, conn)
-    #employeeData(50, conn)
-    #conn.close()
+    # conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
+    # clearDB(conn)
+    # addRoot(conn)
+    # locationData(18, conn)
+    # employeeData(50, conn)
+    # conn.close()
