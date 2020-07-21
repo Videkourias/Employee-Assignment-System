@@ -1,21 +1,29 @@
 # Import libraries
-from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from functools import wraps
-from wtforms import Form, StringField, validators, SelectField, PasswordField
-from wtforms.validators import InputRequired, EqualTo
-from passlib.hash import sha256_crypt
+import os
 from datetime import datetime
+from functools import wraps
+
 import psycopg2
 import psycopg2.extras
-import os
+from flask import Flask, render_template, flash, redirect, url_for, session, request
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from passlib.hash import sha256_crypt
+from wtforms import Form, StringField, validators, SelectField, PasswordField
+from wtforms.validators import InputRequired, EqualTo
+from dotenv import load_dotenv
 
 # Flask instance
 app = Flask(__name__)
 
+# Initialize some environmental variables
+load_dotenv()
+DBNAME = os.getenv('DBNAME')
+DBUSER = os.getenv('DBUSER')
+DBPASS = os.getenv('DBPASS')
+
 # Initialize PostgreSQL
-conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
+conn = psycopg2.connect(dbname=DBNAME, user=DBUSER, password=DBPASS)
 
 # Initialize Flask Limiter
 limiter = Limiter(app, key_func=get_remote_address)
@@ -922,8 +930,10 @@ def updatePassword():
         return render_template('updatePassword.html')
 
 
-if __name__ == '__main__':
+def main():
     app.secret_key = os.urandom(12)
     app.debug = True
     app.run()
-    conn.close()
+
+if __name__ == '__main__':
+    main()

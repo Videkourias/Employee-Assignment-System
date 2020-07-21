@@ -16,19 +16,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
---
--- Name: adminpack; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS adminpack WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION adminpack; Type: COMMENT; Schema: -; Owner: 
---
-
-COMMENT ON EXTENSION adminpack IS 'administrative functions for PostgreSQL';
-
 
 SET default_tablespace = '';
 
@@ -45,9 +32,6 @@ CREATE TABLE public.employees (
     lastupdate timestamp without time zone
 );
 
-
-ALTER TABLE public.employees OWNER TO postgres;
-
 --
 -- Name: locations; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -61,9 +45,6 @@ CREATE TABLE public.locations (
     lastupdate timestamp without time zone
 );
 
-
-ALTER TABLE public.locations OWNER TO postgres;
-
 --
 -- Name: locations_id_seq; Type: SEQUENCE; Schema: public; Owner: ${DBUSER}
 --
@@ -75,9 +56,6 @@ CREATE SEQUENCE public.locations_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE public.locations_id_seq OWNER TO postgres;
 
 --
 -- Name: locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -100,9 +78,6 @@ CREATE TABLE public.requests (
     status boolean DEFAULT true
 );
 
-
-ALTER TABLE public.requests OWNER TO postgres;
-
 --
 -- Name: requests_reqnum_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
@@ -114,9 +89,6 @@ CREATE SEQUENCE public.requests_reqnum_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE public.requests_reqnum_seq OWNER TO postgres;
 
 --
 -- Name: requests_reqnum_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -134,9 +106,6 @@ CREATE TABLE public.users (
     password character varying(100),
     usertype integer
 );
-
-
-ALTER TABLE public.users OWNER TO postgres;
 
 --
 -- Name: locations id; Type: DEFAULT; Schema: public; Owner: postgres

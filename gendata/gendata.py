@@ -1,11 +1,22 @@
-import names, psycopg2, json
-import psycopg2.extras
 import random as rm
+import string
 from datetime import datetime
+
+import json
+import names
+import os
+import psycopg2
+import psycopg2.extras
+from dotenv import load_dotenv
 from passlib.hash import sha256_crypt
 
-conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
+# Imports env variables and creates DB connection
+load_dotenv()
+DBNAME = os.getenv('DBNAME')
+DBUSER = os.getenv('DBUSER')
+DBPASS = os.getenv('DBPASS')
 
+conn = psycopg2.connect(dbname=DBNAME, user=DBUSER, password=DBPASS)
 
 # Fills employees table with random data, satisfies foreign key constraint
 def employeeData(num):
@@ -21,13 +32,17 @@ def employeeData(num):
 
     for i in range(num):
         name = names.get_full_name()
-        lname = name.split(' ')[1]
-        email = lname.lower() + "@gmail.com"
+        #lname = name.split(' ')[1]
+        email = ''.join(rm.choice(string.ascii_letters) for x in range(10)).lower() + "@gmail.com"
         assignedto = ids[rm.randrange(cap)][0]
 
         # Add to users table first, to satisfy foreign key constraint
-        cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
-                    (email, sha256_crypt.hash('0000'), 2))
+        try:
+            cur.execute("insert into users(email, password, usertype) values(%s, %s, %s)",
+                        (email, sha256_crypt.hash('0000'), 2))
+        except psycopg2.DatabaseError:
+            print("Error adding row")
+            continue
 
         cur.execute('insert into employees values(%s, %s, %s, %s)',
                     (email, name, assignedto, currentTime))
@@ -74,12 +89,15 @@ def locationData(num):
             # Create user corresponding to the new location
             cur.execute("insert into users(email, password, usertype) values(%s, %s, 3)",
                         (email, sha256_crypt.hash('0000')))
-            # Insert location
-            cur.execute("insert into locations(address, name, email, lastupdate) values(%s, %s, %s, %s)",
-                        (address, name, email, currentTime))
-            print(name, "--", email, "--", currentTime)
-        except:
+        except psycopg2.DatabaseError:
             print("Error adding row")
+            continue
+
+        # Insert location
+        cur.execute("insert into locations(address, name, email, lastupdate) values(%s, %s, %s, %s)",
+                    (address, name, email, currentTime))
+        #print(name, "--", email, "--", currentTime)
+
 
     conn.commit()
     cur.close()
@@ -109,9 +127,19 @@ def clearDB():
     cur.close()
 
 
-if __name__ == "__main__":
-    #pass
-    #clearDB()
+# Customizable Populate Option
+def populate(numEmp, numLoc):
+    clearDB()
     addRoot()
-    #locationData(18)
-    #employeeData(50)
+    locationData(int(numEmp))
+    employeeData(int(numLoc))
+    conn.close()
+
+if __name__ == "__main__":
+    pass
+    #conn = psycopg2.connect(dbname='postgres', user='postgres', password='root')
+    #clearDB(conn)
+    #addRoot(conn)
+    #locationData(18, conn)
+    #employeeData(50, conn)
+    #conn.close()

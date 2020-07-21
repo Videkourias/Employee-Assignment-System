@@ -1,9 +1,5 @@
-- Logout after certain amount of time
-
-- Switch PK of locations to email
+- SQLAlchemy?
 - Display informative error messages on input forms, not just "Fill all blanks" (ie. password mismatch)
-
-- Captcha
 - Add session lifetime https://stackoverflow.com/questions/11783025/is-there-an-easy-way-to-make-sessions-timeout-in-flask
 
 Q
@@ -14,3 +10,4 @@ Q
 - Better to have relocation operations all in one button? or individual assign/remove?
 - Create account from login page?
 - If user logged in and tries to log in again, allow them?
+- setup.sql doesn't create adminpack, should it?
